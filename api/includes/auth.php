@@ -64,7 +64,7 @@ function is_admin(): bool
 function require_auth(): void
 {
     if (!get_session_token()) {
-        header('Location: /login.php');
+        header('Location: /login');
         exit;
     }
 }
@@ -72,7 +72,7 @@ function require_auth(): void
 function require_admin(): void
 {
     if (!is_admin()) {
-        header('Location: /admin/login.php');
+        header('Location: /admin/login');
         exit;
     }
 }

@@ -129,6 +129,23 @@ class DelkaiAPI
         ]);
     }
 
+    /**
+     * Exchange a verified Clerk identity for a DelkaAI session token.
+     * Returns array with session_token + expires_at, or null on failure.
+     */
+    public function clerkProvision(string $email, string $full_name, string $clerk_id, string $master_key): ?array
+    {
+        try {
+            return $this->request('POST', '/v1/developer/clerk-provision', [
+                'email'     => $email,
+                'full_name' => $full_name,
+                'clerk_id'  => $clerk_id,
+            ], ['X-DelkaAI-Master-Key: ' . $master_key]);
+        } catch (RuntimeException $e) {
+            return null;
+        }
+    }
+
     // ── Admin ────────────────────────────────────────────────────────────────
 
     private function masterHeader(string $master_key): string
