@@ -1,0 +1,12 @@
+<?php
+/**
+ * DelkaAI Developer Console — Configuration
+ */
+
+defined('DELKAI_API_URL')    || define('DELKAI_API_URL',    getenv('DELKAI_API_URL')    ?: 'https://delka.onrender.com');
+defined('DELKAI_MASTER_KEY') || define('DELKAI_MASTER_KEY', getenv('DELKAI_MASTER_KEY') ?: '');
+defined('ADMIN_EMAIL')       || define('ADMIN_EMAIL',       getenv('ADMIN_EMAIL')       ?: '');
+defined('ADMIN_PASSWORD')    || define('ADMIN_PASSWORD',    getenv('ADMIN_PASSWORD')    ?: '');
+
+defined('SESSION_COOKIE') || define('SESSION_COOKIE', 'delkai_dev_session');
+defined('ADMIN_COOKIE')   || define('ADMIN_COOKIE',   'delkai_admin_session');
