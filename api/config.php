@@ -8,5 +8,8 @@ defined('DELKAI_MASTER_KEY') || define('DELKAI_MASTER_KEY', getenv('DELKAI_MASTE
 defined('ADMIN_EMAIL')       || define('ADMIN_EMAIL',       getenv('ADMIN_EMAIL')       ?: '');
 defined('ADMIN_PASSWORD')    || define('ADMIN_PASSWORD',    getenv('ADMIN_PASSWORD')    ?: '');
 
+defined('RESEND_API_KEY')    || define('RESEND_API_KEY',    getenv('RESEND_API_KEY')    ?: '');
+defined('RESEND_FROM_EMAIL') || define('RESEND_FROM_EMAIL', getenv('RESEND_FROM_EMAIL') ?: 'noreply@delkaai.com');
+
 defined('SESSION_COOKIE') || define('SESSION_COOKIE', 'delkai_dev_session');
 defined('ADMIN_COOKIE')   || define('ADMIN_COOKIE',   'delkai_admin_session');
