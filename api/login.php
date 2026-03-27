@@ -19,20 +19,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         try {
             $sb   = new SupabaseClient();
-            $user = $sb->findUser($email);
+            $user = $sb->login($email, $password);
 
-            if (!$user || !password_verify($password, $user['password_hash'])) {
-                $error = 'Invalid email or password.';
-            } elseif (!($user['is_active'] ?? true)) {
-                $error = 'Your account has been disabled. Contact support.';
-            } else {
-                $sb->touchLastLogin($email);
-                set_auth_cookie($email, $user['full_name'], $user['company'] ?? null);
+            if ($user) {
+                set_auth_cookie($user['email'], $user['full_name'], $user['company']);
                 header('Location: /dashboard');
                 exit;
+            } else {
+                $error = 'Invalid email or password.';
             }
         } catch (RuntimeException $e) {
-            $error = 'Sign-in failed. Please try again.';
+            $error = 'Sign-in failed: ' . $e->getMessage();
         }
     }
 }

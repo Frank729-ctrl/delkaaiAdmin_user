@@ -22,22 +22,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Password must be at least 8 characters.';
     } else {
         try {
-            $sb = new SupabaseClient();
+            $sb  = new SupabaseClient();
+            $err = $sb->register($email, $password, $full_name, $company);
 
-            if ($sb->findUser($email)) {
+            if ($err === null) {
+                set_auth_cookie($email, $full_name, $company);
+                header('Location: /dashboard');
+                exit;
+            } elseif ($err === 'duplicate') {
                 $error = 'An account with that email already exists.';
             } else {
-                $pw_hash = password_hash($password, PASSWORD_BCRYPT);
-                if ($sb->createUser($email, $pw_hash, $full_name, $company)) {
-                    set_auth_cookie($email, $full_name, $company);
-                    header('Location: /dashboard');
-                    exit;
-                } else {
-                    $error = 'Registration failed. Please try again.';
-                }
+                $error = 'Registration failed: ' . $err;
             }
         } catch (RuntimeException $e) {
-            $error = 'Registration failed. Please try again.';
+            $error = 'Registration failed: ' . $e->getMessage();
         }
     }
 }
