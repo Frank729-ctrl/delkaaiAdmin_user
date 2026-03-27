@@ -22,7 +22,7 @@ try {
 } catch (RuntimeException $e) {
     if ($e->getCode() === 401) {
         clear_session_token();
-        header('Location: /login.php');
+        header('Location: /login');
         exit;
     }
     $error = $e->getMessage();

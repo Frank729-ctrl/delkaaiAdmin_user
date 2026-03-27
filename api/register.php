@@ -8,7 +8,7 @@ require_once __DIR__ . '/includes/api.php';
 
 // Already logged in → dashboard
 if (get_session_token()) {
-    header('Location: /dashboard.php');
+    header('Location: /dashboard');
     exit;
 }
 
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         try {
             $api->register($email, $password, $full_name, $company);
-            header('Location: /login.php?registered=1');
+            header('Location: /login?registered=1');
             exit;
         } catch (RuntimeException $e) {
             $code = $e->getCode();
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
     <?php endif; ?>
 
-    <form method="POST" action="/register.php">
+    <form method="POST" action="/register">
       <div class="form-group">
         <label for="full_name">Full Name</label>
         <input type="text" id="full_name" name="full_name"
@@ -101,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 
     <div class="login-footer">
-      Already have an account? <a href="/login.php">Sign in</a>
+      Already have an account? <a href="/login">Sign in</a>
     </div>
   </div>
 </div>

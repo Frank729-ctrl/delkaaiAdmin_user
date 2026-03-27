@@ -7,7 +7,7 @@ require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/api.php';
 
 if (get_session_token()) {
-    header('Location: /dashboard.php');
+    header('Location: /dashboard');
     exit;
 }
 
@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = $api->loginFull($email, $password);
         if ($result && !empty($result['session_token'])) {
             set_session_token($result['session_token'], $result['expires_at'] ?? null);
-            header('Location: /dashboard.php');
+            header('Location: /dashboard');
             exit;
         } else {
             $error = 'Invalid email or password.';
@@ -65,7 +65,7 @@ $registered = isset($_GET['registered']) && $_GET['registered'] === '1';
     </div>
     <?php endif; ?>
 
-    <form method="POST" action="/login.php">
+    <form method="POST" action="/login">
       <div class="form-group">
         <label for="email">Email Address</label>
         <input type="email" id="email" name="email"
@@ -88,7 +88,7 @@ $registered = isset($_GET['registered']) && $_GET['registered'] === '1';
     </form>
 
     <div class="login-footer">
-      Don't have an account? <a href="/register.php">Create one</a>
+      Don't have an account? <a href="/register">Create one</a>
     </div>
   </div>
 </div>

@@ -18,8 +18,8 @@
     <span class="topnav-logo-text">DelkaAI</span>
   </a>
   <div class="topnav-actions">
-    <a href="/login.php" class="btn btn-ghost btn-sm">Sign In</a>
-    <a href="/register.php" class="btn btn-primary btn-sm">Get Started</a>
+    <a href="/login" class="btn btn-ghost btn-sm">Sign In</a>
+    <a href="/register" class="btn btn-primary btn-sm">Get Started</a>
   </div>
 </nav>
 
@@ -31,8 +31,8 @@
     conversational support, and visual search — production-ready and easy to integrate.
   </p>
   <div class="hero-actions">
-    <a href="/register.php" class="btn btn-primary">Get started for free</a>
-    <a href="/docs.php" class="btn btn-ghost">View docs</a>
+    <a href="/register" class="btn btn-primary">Get started for free</a>
+    <a href="/docs" class="btn btn-ghost">View docs</a>
   </div>
 </section>
 

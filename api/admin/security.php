@@ -88,7 +88,7 @@ $active_page = 'security';
     <div class="card">
       <div class="card-header">
         <h2>Blocked IP Addresses</h2>
-        <a href="/admin/security.php" class="btn btn-ghost btn-sm">
+        <a href="/admin/security" class="btn btn-ghost btn-sm">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.45"/></svg>
           Refresh
         </a>
@@ -138,7 +138,7 @@ $active_page = 'security';
                 <?= $expires ? date('M j, Y H:i', strtotime($expires)) : 'Permanent' ?>
               </td>
               <td>
-                <form method="POST" action="/admin/security.php"
+                <form method="POST" action="/admin/security"
                       data-confirm="Unblock IP <?= htmlspecialchars(is_string($entry) ? $entry : ($entry['ip_address'] ?? '')) ?>?">
                   <input type="hidden" name="ip_address" value="<?= htmlspecialchars(is_string($entry) ? $entry : ($entry['ip_address'] ?? $entry['ip'] ?? '')) ?>">
                   <button type="submit" class="btn btn-secondary btn-xs">Unblock</button>

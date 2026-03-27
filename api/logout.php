@@ -14,5 +14,5 @@ if ($token) {
     clear_session_token();
 }
 
-header('Location: /login.php');
+header('Location: /login');
 exit;

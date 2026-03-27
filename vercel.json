@@ -21,6 +21,7 @@
     { "src": "/keys",       "dest": "/api/keys.php" },
     { "src": "/usage",      "dest": "/api/usage.php" },
     { "src": "/playground", "dest": "/api/playground.php" },
+    { "src": "/docs",       "dest": "/api/docs.php" },
     { "src": "/",           "dest": "/api/index.php" }
   ]
 }

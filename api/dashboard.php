@@ -21,7 +21,7 @@ try {
 } catch (RuntimeException $e) {
     if ($e->getCode() === 401) {
         clear_session_token();
-        header('Location: /login.php');
+        header('Location: /login');
         exit;
     }
     $error = $e->getMessage();
@@ -54,7 +54,7 @@ $active_page = 'overview';
         <p>Here's an overview of your DelkaAI usage.</p>
       </div>
       <div class="page-header-actions">
-        <a href="/keys.php" class="btn btn-primary btn-sm">
+        <a href="/keys" class="btn btn-primary btn-sm">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
           View API Keys
         </a>
@@ -109,19 +109,19 @@ $active_page = 'overview';
         <h2>Quick Actions</h2>
       </div>
       <div class="card-body d-flex gap-12" style="flex-wrap:wrap;">
-        <a href="/keys.php" class="btn btn-secondary">
+        <a href="/keys" class="btn btn-secondary">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
           Manage Keys
         </a>
-        <a href="/docs.php" class="btn btn-secondary">
+        <a href="/docs" class="btn btn-secondary">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           View Docs
         </a>
-        <a href="/playground.php" class="btn btn-secondary">
+        <a href="/playground" class="btn btn-secondary">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
           Try Playground
         </a>
-        <a href="/usage.php" class="btn btn-secondary">
+        <a href="/usage" class="btn btn-secondary">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           View Usage
         </a>

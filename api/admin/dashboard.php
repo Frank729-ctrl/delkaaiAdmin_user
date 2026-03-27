@@ -113,10 +113,10 @@ $active_page = 'dashboard';
     <div class="card">
       <div class="card-header"><h2>Quick Actions</h2></div>
       <div class="card-body d-flex gap-12" style="flex-wrap:wrap;">
-        <a href="/admin/keys.php" class="btn btn-secondary">Manage API Keys</a>
-        <a href="/admin/metrics.php" class="btn btn-secondary">View Metrics</a>
-        <a href="/admin/security.php" class="btn btn-secondary">Security</a>
-        <a href="/admin/users.php" class="btn btn-secondary">Developers</a>
+        <a href="/admin/keys" class="btn btn-secondary">Manage API Keys</a>
+        <a href="/admin/metrics" class="btn btn-secondary">View Metrics</a>
+        <a href="/admin/security" class="btn btn-secondary">Security</a>
+        <a href="/admin/users" class="btn btn-secondary">Developers</a>
       </div>
     </div>
   </main>

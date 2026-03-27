@@ -109,7 +109,7 @@ $active_page = 'keys';
     <div class="card mb-24">
       <div class="card-header"><h2>Create New Key Pair</h2></div>
       <div class="card-body">
-        <form method="POST" action="/admin/keys.php">
+        <form method="POST" action="/admin/keys">
           <input type="hidden" name="action" value="create">
           <div class="form-row">
             <div class="form-group mb-0">
@@ -199,7 +199,7 @@ $active_page = 'keys';
               <td class="text-muted" style="font-size:12px;"><?= $created ? date('M j, Y', strtotime($created)) : '—' ?></td>
               <td>
                 <?php if ($active): ?>
-                <form method="POST" action="/admin/keys.php"
+                <form method="POST" action="/admin/keys"
                       data-confirm="Revoke key <?= $prefix ?>? This cannot be undone.">
                   <input type="hidden" name="action" value="revoke">
                   <input type="hidden" name="key_prefix" value="<?= $prefix ?>">

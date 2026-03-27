@@ -67,7 +67,7 @@ $active_page = 'users';
       <div class="card-body">
         <p class="text-muted" style="font-size:13px;">
           Each developer's API keys are linked to their account email. To manage a developer's access,
-          use the <a href="/admin/keys.php">API Keys</a> page to revoke their keys.
+          use the <a href="/admin/keys">API Keys</a> page to revoke their keys.
         </p>
       </div>
     </div>

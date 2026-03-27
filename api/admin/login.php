@@ -6,7 +6,7 @@ require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/auth.php';
 
 if (is_admin()) {
-    header('Location: /admin/dashboard.php');
+    header('Location: /admin/dashboard');
     exit;
 }
 
@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($email === ADMIN_EMAIL && $password === ADMIN_PASSWORD) {
         set_admin_session();
-        header('Location: /admin/dashboard.php');
+        header('Location: /admin/dashboard');
         exit;
     } else {
         $error = 'Invalid credentials.';
@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
     <?php endif; ?>
 
-    <form method="POST" action="/admin/login.php">
+    <form method="POST" action="/admin/login">
       <div class="form-group">
         <label for="email">Admin Email</label>
         <input type="email" id="email" name="email"
