@@ -122,6 +122,20 @@ class DelkaiAPI
         ]);
     }
 
+    public function createDeveloperKey(string $session_token, string $key_name): array
+    {
+        return $this->request('POST', '/v1/developer/keys/create', [
+            'key_name' => $key_name,
+        ], ['X-Delkai-Session: ' . $session_token]);
+    }
+
+    public function revokeDeveloperKey(string $session_token, string $key_prefix): array
+    {
+        return $this->request('POST', '/v1/developer/keys/revoke', [
+            'key_prefix' => $key_prefix,
+        ], ['X-Delkai-Session: ' . $session_token]);
+    }
+
     public function keys(string $session_token): array
     {
         return $this->request('GET', '/v1/developer/keys', [], [
