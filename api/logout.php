@@ -9,39 +9,10 @@ if ($token) {
         $api = new DelkaiAPI(DELKAI_API_URL);
         $api->logout($token);
     } catch (RuntimeException $e) {
-        // Ignore — still clear cookies
+        // Ignore — still clear the cookie
     }
     clear_session_token();
 }
 
-// Clear Clerk user-info cache cookies
-setcookie('_clerk_uid',   '', time() - 3600, '/', '', true, true);
-setcookie('_clerk_email', '', time() - 3600, '/', '', true, true);
-setcookie('_clerk_name',  '', time() - 3600, '/', '', true, true);
-?><!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Signing out… — DelkaAI</title>
-<link rel="stylesheet" href="/css/style.css">
-</head>
-<body>
-<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);">
-  <p style="color:var(--muted);">Signing out…</p>
-</div>
-<script
-  data-clerk-publishable-key="<?= htmlspecialchars(CLERK_PUBLISHABLE_KEY) ?>"
-  src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
-  crossorigin="anonymous">
-</script>
-<script>
-window.addEventListener('load', async function () {
-  try {
-    await window.Clerk.load();
-    await window.Clerk.signOut();
-  } catch (e) { /* ignore */ }
-  window.location.href = '/login';
-});
-</script>
-</body>
-</html>
+header('Location: /login');
+exit;

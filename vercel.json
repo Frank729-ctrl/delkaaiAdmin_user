@@ -15,7 +15,6 @@
     { "src": "/admin/users",     "dest": "/api/admin/users.php" },
     { "src": "/admin/metrics",   "dest": "/api/admin/metrics.php" },
     { "src": "/admin/security",  "dest": "/api/admin/security.php" },
-    { "src": "/auth/callback", "dest": "/api/auth_callback.php" },
     { "src": "/login",         "dest": "/api/login.php" },
     { "src": "/register",      "dest": "/api/register.php" },
     { "src": "/logout",        "dest": "/api/logout.php" },

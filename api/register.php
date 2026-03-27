@@ -1,10 +1,44 @@
 <?php
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/api.php';
 
 if (get_session_token()) {
     header('Location: /dashboard');
     exit;
+}
+
+$api   = new DelkaiAPI(DELKAI_API_URL);
+$error = null;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $full_name = trim($_POST['full_name'] ?? '');
+    $email     = trim($_POST['email']     ?? '');
+    $password  = $_POST['password']       ?? '';
+    $company   = trim($_POST['company']   ?? '') ?: null;
+
+    if (!$full_name || !$email || !$password) {
+        $error = 'Full name, email, and password are required.';
+    } elseif (strlen($password) < 8) {
+        $error = 'Password must be at least 8 characters.';
+    } else {
+        try {
+            $api->register($email, $password, $full_name, $company);
+            // Auto-login after registration
+            $result = $api->loginFull($email, $password);
+            if ($result && !empty($result['session_token'])) {
+                set_session_token($result['session_token'], $result['expires_at'] ?? null);
+                header('Location: /dashboard');
+                exit;
+            }
+            header('Location: /login?registered=1');
+            exit;
+        } catch (RuntimeException $e) {
+            $error = $e->getCode() === 409
+                ? 'An account with that email already exists.'
+                : 'Registration failed. Please try again.';
+        }
+    }
 }
 ?><!DOCTYPE html>
 <html lang="en">
@@ -13,71 +47,63 @@ if (get_session_token()) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Create Account — DelkaAI</title>
 <link rel="stylesheet" href="/css/style.css">
-<style>
-.clerk-wrap {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: var(--bg);
-}
-.clerk-logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 32px;
-  text-decoration: none;
-}
-.clerk-logo-icon {
-  width: 36px; height: 36px;
-  border-radius: 8px;
-  background: var(--accent);
-  color: #fff;
-  font-weight: 700;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.clerk-logo-text { font-size: 18px; font-weight: 700; color: var(--text); }
-#clerk-sign-up { width: 100%; max-width: 400px; }
-</style>
 </head>
 <body>
-<div class="clerk-wrap">
-  <a href="/" class="clerk-logo">
-    <div class="clerk-logo-icon">D</div>
-    <span class="clerk-logo-text">DelkaAI</span>
-  </a>
-  <div id="clerk-sign-up"></div>
+
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">D</div>
+      <span class="login-logo-text">DelkaAI</span>
+    </div>
+
+    <h1 class="login-title">Create your account</h1>
+    <p class="login-subtitle">Start building with the DelkaAI API.</p>
+
+    <?php if ($error): ?>
+    <div class="alert alert-error" data-autohide><?= htmlspecialchars($error) ?></div>
+    <?php endif; ?>
+
+    <form method="POST" action="/register">
+      <div class="form-group">
+        <label for="full_name">Full Name</label>
+        <input type="text" id="full_name" name="full_name"
+               value="<?= htmlspecialchars($_POST['full_name'] ?? '') ?>"
+               placeholder="Jane Smith" required autofocus>
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email"
+               value="<?= htmlspecialchars($_POST['email'] ?? '') ?>"
+               placeholder="you@example.com" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-group">
+          <input type="password" id="password" name="password"
+                 placeholder="Min. 8 characters" required>
+          <button type="button" class="toggle-pw" onclick="togglePassword('password', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="company">Company <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+        <input type="text" id="company" name="company"
+               value="<?= htmlspecialchars($_POST['company'] ?? '') ?>"
+               placeholder="Acme Corp">
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;">
+        Create Account
+      </button>
+    </form>
+
+    <div class="login-footer">
+      Already have an account? <a href="/login">Sign in</a>
+    </div>
+  </div>
 </div>
 
-<script
-  data-clerk-publishable-key="<?= htmlspecialchars(CLERK_PUBLISHABLE_KEY) ?>"
-  src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
-  crossorigin="anonymous">
-</script>
-<script>
-window.addEventListener('load', async function () {
-  await window.Clerk.load();
-
-  if (window.Clerk.user) {
-    window.location.href = '/auth/callback';
-    return;
-  }
-
-  window.Clerk.mountSignUp(document.getElementById('clerk-sign-up'), {
-    signInUrl: '/login',
-  });
-
-  window.Clerk.addListener(function (resources) {
-    if (resources.session) {
-      window.location.href = '/auth/callback';
-    }
-  });
-});
-</script>
+<script src="/js/app.js"></script>
 </body>
 </html>
