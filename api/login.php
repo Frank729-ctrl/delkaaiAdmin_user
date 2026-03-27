@@ -54,31 +54,30 @@ if (get_session_token()) {
   <div id="clerk-sign-in"></div>
 </div>
 
-<!-- Clerk JS from jsDelivr (reliable CDN, pinned to v5) -->
-<script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
-        crossorigin="anonymous"></script>
+<script
+  data-clerk-publishable-key="<?= htmlspecialchars(CLERK_PUBLISHABLE_KEY) ?>"
+  src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
+  crossorigin="anonymous">
+</script>
 <script>
-(async function () {
-  const clerk = new window.Clerk('<?= htmlspecialchars(CLERK_PUBLISHABLE_KEY) ?>');
-  await clerk.load();
+window.addEventListener('load', async function () {
+  await window.Clerk.load();
 
-  // If already signed in, go straight to callback
-  if (clerk.user) {
+  if (window.Clerk.user) {
     window.location.href = '/auth/callback';
     return;
   }
 
-  clerk.mountSignIn(document.getElementById('clerk-sign-in'), {
+  window.Clerk.mountSignIn(document.getElementById('clerk-sign-in'), {
     signUpUrl: '/register',
   });
 
-  // Redirect to auth callback whenever a session becomes active
-  clerk.addListener(function (resources) {
+  window.Clerk.addListener(function (resources) {
     if (resources.session) {
       window.location.href = '/auth/callback';
     }
   });
-}());
+});
 </script>
 </body>
 </html>

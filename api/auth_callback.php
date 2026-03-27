@@ -34,23 +34,25 @@ if (empty($_COOKIE['__session'])) {
   <p style="color:var(--muted);font-size:14px;">Completing sign-in…</p>
 </div>
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
-<script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js" crossorigin="anonymous"></script>
+<script
+  data-clerk-publishable-key="<?= htmlspecialchars(CLERK_PUBLISHABLE_KEY) ?>"
+  src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
+  crossorigin="anonymous">
+</script>
 <script>
-(async function () {
+window.addEventListener('load', async function () {
   try {
-    const clerk = new window.Clerk('<?= htmlspecialchars(CLERK_PUBLISHABLE_KEY) ?>');
-    await clerk.load();
-    if (clerk.session) {
+    await window.Clerk.load();
+    if (window.Clerk.session) {
       // Cookie should now be set — reload so PHP can read it
       window.location.reload();
     } else {
-      // No active session — back to login
       window.location.href = '/login';
     }
   } catch (e) {
     window.location.href = '/login';
   }
-}());
+});
 </script>
 </body>
 </html>
