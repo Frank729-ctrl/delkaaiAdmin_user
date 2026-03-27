@@ -1,27 +1,24 @@
 <?php
 /**
- * Auth callback — exchanges a verified Clerk session for a DelkaAI session token.
- *
- * Clerk JS sets the __session cookie then redirects here.
- * PHP verifies the JWT, fetches user info, and provisions a DelkaAI session.
+ * Auth callback.
+ * Clerk JS redirects here after sign-in. The __session cookie is already set.
+ * PHP verifies the session via Clerk's Backend API, then provisions a DelkaAI session.
  */
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/clerk.php';
 require_once __DIR__ . '/includes/api.php';
 
-// Already has a valid DelkaAI session
+// Already authenticated with DelkaAI — skip straight to dashboard
 if (get_session_token()) {
     header('Location: /dashboard');
     exit;
 }
 
-// Verify the Clerk __session JWT and get user info
-$user = clerk_current_user();
-
-if (!$user) {
-    // JWT missing or invalid — show a small page that waits for Clerk JS to
-    // establish the session (handles the case where the cookie isn't set yet).
+// __session cookie not present yet — Clerk JS needs to finish setting up.
+// Show a minimal page that loads Clerk JS and waits for the session,
+// then posts back here once the cookie is in place.
+if (empty($_COOKIE['__session'])) {
     ?><!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,29 +27,30 @@ if (!$user) {
 <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);">
-  <p style="color:var(--muted);">Completing sign-in…</p>
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;
+            justify-content:center;gap:16px;background:var(--bg);">
+  <div style="width:32px;height:32px;border:3px solid var(--border);
+              border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+  <p style="color:var(--muted);font-size:14px;">Completing sign-in…</p>
 </div>
-<script
-  async
-  crossorigin="anonymous"
-  data-clerk-publishable-key="<?= htmlspecialchars(CLERK_PUBLISHABLE_KEY) ?>"
-  src="<?= htmlspecialchars(CLERK_FRONTEND_URL) ?>/npm/@clerk/clerk-js@latest/dist/clerk.browser.js">
-</script>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+<script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js" crossorigin="anonymous"></script>
 <script>
-window.addEventListener('load', async function () {
+(async function () {
   try {
-    await window.Clerk.load();
-    if (window.Clerk.user) {
-      // Session established — reload so PHP can read the __session cookie
+    const clerk = new window.Clerk('<?= htmlspecialchars(CLERK_PUBLISHABLE_KEY) ?>');
+    await clerk.load();
+    if (clerk.session) {
+      // Cookie should now be set — reload so PHP can read it
       window.location.reload();
     } else {
+      // No active session — back to login
       window.location.href = '/login';
     }
-  } catch (err) {
+  } catch (e) {
     window.location.href = '/login';
   }
-});
+}());
 </script>
 </body>
 </html>
@@ -60,17 +58,27 @@ window.addEventListener('load', async function () {
     exit;
 }
 
-// Exchange Clerk identity for a DelkaAI session token
+// __session cookie is present — verify it via Clerk's Backend API
+$user = clerk_current_user();
+
+if (!$user) {
+    // Verification failed (expired, revoked, or invalid) — send back to login
+    header('Location: /login');
+    exit;
+}
+
+// Exchange Clerk identity for a 24 h DelkaAI session token
 $api    = new DelkaiAPI(DELKAI_API_URL);
 $result = $api->clerkProvision(
     $user['email'],
-    $user['full_name'] ?: ($user['email']),
+    $user['full_name'] ?: $user['email'],
     $user['id'],
     DELKAI_MASTER_KEY
 );
 
 if (!$result || empty($result['session_token'])) {
-    header('Location: /login?error=1');
+    // Backend unreachable or provision failed
+    header('Location: /login?error=provision');
     exit;
 }
 

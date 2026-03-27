@@ -29,19 +29,16 @@ setcookie('_clerk_name',  '', time() - 3600, '/', '', true, true);
 <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);">
   <p style="color:var(--muted);">Signing out…</p>
 </div>
-<script
-  async
-  crossorigin="anonymous"
-  data-clerk-publishable-key="<?= htmlspecialchars(CLERK_PUBLISHABLE_KEY) ?>"
-  src="<?= htmlspecialchars(CLERK_FRONTEND_URL) ?>/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
-  type="text/javascript">
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js" crossorigin="anonymous"></script>
 <script>
-window.addEventListener('load', async function () {
-  await window.Clerk.load();
-  await window.Clerk.signOut();
+(async function () {
+  try {
+    const clerk = new window.Clerk('<?= htmlspecialchars(CLERK_PUBLISHABLE_KEY) ?>');
+    await clerk.load();
+    await clerk.signOut();
+  } catch (e) { /* ignore */ }
   window.location.href = '/login';
-});
+}());
 </script>
 </body>
 </html>
