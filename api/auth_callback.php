@@ -37,17 +37,19 @@ if (!$user) {
   async
   crossorigin="anonymous"
   data-clerk-publishable-key="<?= htmlspecialchars(CLERK_PUBLISHABLE_KEY) ?>"
-  src="<?= htmlspecialchars(CLERK_FRONTEND_URL) ?>/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
-  type="text/javascript">
+  src="<?= htmlspecialchars(CLERK_FRONTEND_URL) ?>/npm/@clerk/clerk-js@latest/dist/clerk.browser.js">
 </script>
 <script>
 window.addEventListener('load', async function () {
-  await window.Clerk.load();
-  const user = window.Clerk.user;
-  if (user) {
-    // Session established — reload this page so PHP can read the cookie
-    window.location.reload();
-  } else {
+  try {
+    await window.Clerk.load();
+    if (window.Clerk.user) {
+      // Session established — reload so PHP can read the __session cookie
+      window.location.reload();
+    } else {
+      window.location.href = '/login';
+    }
+  } catch (err) {
     window.location.href = '/login';
   }
 });

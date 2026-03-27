@@ -59,14 +59,14 @@ $active_page = 'metrics';
     <div class="stat-grid">
       <?php
       $stat_map = [
-        'total_keys'         => ['label' => 'Total Keys',        'icon' => 'purple'],
-        'active_keys'        => ['label' => 'Active Keys',       'icon' => 'green'],
-        'total_requests'     => ['label' => 'Total Requests',    'icon' => 'blue'],
-        'avg_response_ms'    => ['label' => 'Avg Response',      'icon' => 'yellow', 'suffix' => 'ms'],
-        'blocked_ips'        => ['label' => 'Blocked IPs',       'icon' => 'red'],
-        'requests_today'     => ['label' => 'Requests Today',    'icon' => 'blue'],
-        'flagged_keys'       => ['label' => 'Flagged Keys',      'icon' => 'yellow'],
-        'total_developers'   => ['label' => 'Developers',        'icon' => 'purple'],
+        'total_requests'      => ['label' => 'Total Requests',    'icon' => 'blue'],
+        'successful_requests' => ['label' => 'Successful',        'icon' => 'green'],
+        'failed_requests'     => ['label' => 'Failed',            'icon' => 'red'],
+        'avg_response_ms'     => ['label' => 'Avg Response',      'icon' => 'yellow', 'suffix' => 'ms'],
+        'total_llm_calls'     => ['label' => 'LLM Calls',         'icon' => 'purple'],
+        'avg_llm_ms'          => ['label' => 'Avg LLM Time',      'icon' => 'yellow', 'suffix' => 'ms'],
+        'jailbreak_attempts'  => ['label' => 'Jailbreak Attempts','icon' => 'red'],
+        'content_blocked'     => ['label' => 'Content Blocked',   'icon' => 'red'],
       ];
       $shown = 0;
       foreach ($stat_map as $key => $cfg):

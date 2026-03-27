@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 // Load keys
 try {
     $res  = $api->adminKeys(DELKAI_MASTER_KEY);
-    $keys = $res['keys'] ?? $res['data'] ?? $res;
+    $keys = $res['data'] ?? $res['keys'] ?? $res;
     if (!is_array($keys)) $keys = [];
 } catch (RuntimeException $e) {
     $error = $error ?? ('Failed to load keys: ' . $e->getMessage());
@@ -165,7 +165,7 @@ $active_page = 'keys';
           <tbody>
             <?php foreach ($keys as $key): ?>
             <?php
-              $prefix   = htmlspecialchars($key['prefix']      ?? '');
+              $prefix   = htmlspecialchars($key['raw_prefix']  ?? $key['prefix'] ?? '');
               $type     = $key['key_type']     ?? '';
               $platform = htmlspecialchars($key['platform']    ?? '—');
               $owner    = htmlspecialchars($key['owner']       ?? '—');

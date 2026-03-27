@@ -2,6 +2,51 @@
  * DelkaAI Developer Console — Client-side JS
  */
 
+// ── Navigation loading bar ────────────────────────────────────
+(function () {
+  var bar = document.createElement('div');
+  bar.id = 'nav-progress';
+  bar.style.cssText = [
+    'position:fixed', 'top:0', 'left:0', 'width:0', 'height:3px',
+    'background:var(--accent,#7c3aed)', 'z-index:9999',
+    'transition:width 0.2s ease', 'pointer-events:none',
+  ].join(';');
+  document.documentElement.appendChild(bar);
+
+  function startProgress() {
+    bar.style.transition = 'none';
+    bar.style.width = '0';
+    requestAnimationFrame(function () {
+      bar.style.transition = 'width 15s cubic-bezier(0.1,0.05,0,1)';
+      bar.style.width = '92%';
+    });
+  }
+
+  function finishProgress() {
+    bar.style.transition = 'width 0.15s ease';
+    bar.style.width = '100%';
+    setTimeout(function () {
+      bar.style.opacity = '0';
+      setTimeout(function () { bar.style.width = '0'; bar.style.opacity = '1'; }, 200);
+    }, 150);
+  }
+
+  // Trigger on any link click (not same-page anchors, not new tabs)
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('a[href]');
+    if (!a || a.target === '_blank' || a.href.startsWith('mailto:') ||
+        a.href.startsWith('javascript:') || a.getAttribute('href').startsWith('#')) return;
+    startProgress();
+  });
+
+  // Trigger on form submit
+  document.addEventListener('submit', function () { startProgress(); });
+
+  // Finish when page fully loads
+  window.addEventListener('pageshow', finishProgress);
+  window.addEventListener('load', finishProgress);
+}());
+
 // ── Copy to clipboard ─────────────────────────────────────────
 function copyToClipboard(text, btn) {
   if (!text) return;
