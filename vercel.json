@@ -1,12 +1,26 @@
 {
   "functions": {
-    "**/*.php": {
+    "api/**/*.php": {
       "runtime": "vercel-php@0.7.2"
     }
   },
   "routes": [
     { "src": "/css/(.*)", "dest": "/public/css/$1" },
-    { "src": "/js/(.*)", "dest": "/public/js/$1" },
-    { "src": "/img/(.*)", "dest": "/public/img/$1" }
+    { "src": "/js/(.*)",  "dest": "/public/js/$1" },
+    { "src": "/admin/login",     "dest": "/api/admin/login.php" },
+    { "src": "/admin/logout",    "dest": "/api/admin/logout.php" },
+    { "src": "/admin/dashboard", "dest": "/api/admin/dashboard.php" },
+    { "src": "/admin/keys",      "dest": "/api/admin/keys.php" },
+    { "src": "/admin/users",     "dest": "/api/admin/users.php" },
+    { "src": "/admin/metrics",   "dest": "/api/admin/metrics.php" },
+    { "src": "/admin/security",  "dest": "/api/admin/security.php" },
+    { "src": "/login",      "dest": "/api/login.php" },
+    { "src": "/register",   "dest": "/api/register.php" },
+    { "src": "/logout",     "dest": "/api/logout.php" },
+    { "src": "/dashboard",  "dest": "/api/dashboard.php" },
+    { "src": "/keys",       "dest": "/api/keys.php" },
+    { "src": "/usage",      "dest": "/api/usage.php" },
+    { "src": "/playground", "dest": "/api/playground.php" },
+    { "src": "/",           "dest": "/api/index.php" }
   ]
 }
