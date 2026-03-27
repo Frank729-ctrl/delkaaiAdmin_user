@@ -1,14 +1,13 @@
 <?php
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/auth.php';
-require_once __DIR__ . '/includes/api.php';
+require_once __DIR__ . '/includes/supabase.php';
 
-if (get_session_token()) {
+if (get_auth_user()) {
     header('Location: /dashboard');
     exit;
 }
 
-$api   = new DelkaiAPI(DELKAI_API_URL);
 $error = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -18,13 +17,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$email || !$password) {
         $error = 'Email and password are required.';
     } else {
-        $result = $api->loginFull($email, $password);
-        if ($result && !empty($result['session_token'])) {
-            set_session_token($result['session_token'], $result['expires_at'] ?? null);
-            header('Location: /dashboard');
-            exit;
+        try {
+            $sb   = new SupabaseClient();
+            $user = $sb->findUser($email);
+
+            if (!$user || !password_verify($password, $user['password_hash'])) {
+                $error = 'Invalid email or password.';
+            } elseif (!($user['is_active'] ?? true)) {
+                $error = 'Your account has been disabled. Contact support.';
+            } else {
+                $sb->touchLastLogin($email);
+                set_auth_cookie($email, $user['full_name'], $user['company'] ?? null);
+                header('Location: /dashboard');
+                exit;
+            }
+        } catch (RuntimeException $e) {
+            $error = 'Sign-in failed. Please try again.';
         }
-        $error = 'Invalid email or password.';
     }
 }
 ?><!DOCTYPE html>

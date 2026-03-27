@@ -6,13 +6,13 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/api.php';
 
-require_auth();
+$user  = require_auth();
+$email = $user['sub'];
 
-$api    = new DelkaiAPI(DELKAI_API_URL);
-$token  = get_session_token();
-$keys   = [];
-$error  = null;
-$new_key = null; // Shown once after creation
+$api     = new DelkaiAPI(DELKAI_API_URL);
+$keys    = [];
+$error   = null;
+$new_key = null;
 
 // ── Handle create ─────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'create') {
@@ -21,12 +21,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
         $error = 'Please enter a name for your API key.';
     } else {
         try {
-            $new_key = $api->createDeveloperKey($token, $key_name);
+            // Check limit before creating
+            $existing = $api->developerKeys($email);
+            if (count($existing) >= 10) {
+                $error = 'Key limit reached. You can have a maximum of 10 API keys.';
+            } else {
+                $new_key = $api->developerCreateKey($email, $key_name);
+            }
         } catch (RuntimeException $e) {
-            if ($e->getCode() === 401) { clear_session_token(); header('Location: /login'); exit; }
-            $error = $e->getCode() === 429
-                ? 'Key limit reached. You can have a maximum of 10 API keys.'
-                : 'Failed to create key: ' . $e->getMessage();
+            $error = 'Failed to create key: ' . $e->getMessage();
         }
     }
 }
@@ -36,9 +39,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'revok
     $prefix = trim($_POST['key_prefix'] ?? '');
     if ($prefix) {
         try {
-            $api->revokeDeveloperKey($token, $prefix);
+            // Only allow revoking keys that belong to this user
+            $owned = $api->developerKeys($email);
+            $owned_prefixes = array_column($owned, 'raw_prefix');
+            if (!in_array($prefix, $owned_prefixes, true)) {
+                $error = 'Key not found.';
+            } else {
+                $api->adminRevokeKey(DELKAI_MASTER_KEY, $prefix);
+            }
         } catch (RuntimeException $e) {
-            if ($e->getCode() === 401) { clear_session_token(); header('Location: /login'); exit; }
             $error = 'Failed to revoke key: ' . $e->getMessage();
         }
     }
@@ -46,10 +55,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'revok
 
 // ── Load keys ─────────────────────────────────────────────────────────────────
 try {
-    $res  = $api->keys($token);
-    $keys = $res['keys'] ?? [];
+    $keys = $api->developerKeys($email);
 } catch (RuntimeException $e) {
-    if ($e->getCode() === 401) { clear_session_token(); header('Location: /login'); exit; }
     $error = $error ?? $e->getMessage();
 }
 
@@ -258,11 +265,9 @@ $active_page = 'keys';
 
 <script src="/js/app.js"></script>
 <script>
-// Auto-open modal if there was a validation error during creation
 <?php if ($error && str_contains($error ?? '', 'name')): ?>
 document.getElementById('create-modal').classList.add('open');
 <?php endif; ?>
-// Close modal on Escape
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') document.getElementById('create-modal').classList.remove('open');
 });

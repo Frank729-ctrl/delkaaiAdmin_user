@@ -6,32 +6,22 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/api.php';
 
-require_auth();
+$user = require_auth();   // JWT payload: sub=email, name, company
 
 $api   = new DelkaiAPI(DELKAI_API_URL);
-$token = get_session_token();
-
-$me       = [];
-$overview = [];
-$error    = null;
+$keys  = [];
+$error = null;
 
 try {
-    $me       = $api->me($token);
-    $overview = $api->overview($token);
+    $keys = $api->developerKeys($user['sub']);
 } catch (RuntimeException $e) {
-    if ($e->getCode() === 401) {
-        clear_session_token();
-        header('Location: /login');
-        exit;
-    }
-    $error = $e->getMessage();
+    $error = 'Could not load key stats.';
 }
 
-$first_name   = explode(' ', $me['full_name'] ?? 'Developer')[0];
-$total_keys   = $overview['total_keys']      ?? 0;
-$active_keys  = $overview['active_keys']     ?? 0;
-$total_reqs   = $overview['total_requests']  ?? 0;
-$avg_resp     = $overview['avg_response_ms'] ?? null;
+$first_name  = explode(' ', $user['name'] ?? 'Developer')[0];
+$total_keys  = count($keys);
+$active_keys = count(array_filter($keys, fn($k) => $k['is_active'] ?? false));
+$total_reqs  = array_sum(array_column($keys, 'usage_count'));
 
 $active_page = 'overview';
 ?><!DOCTYPE html>
@@ -97,9 +87,9 @@ $active_page = 'overview';
         <div class="stat-icon yellow">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </div>
-        <div class="stat-label">Avg Response</div>
-        <div class="stat-value"><?= $avg_resp !== null ? round($avg_resp) . 'ms' : '—' ?></div>
-        <div class="stat-delta">average latency</div>
+        <div class="stat-label">Key Limit</div>
+        <div class="stat-value"><?= $total_keys ?> / 10</div>
+        <div class="stat-delta"><?= 10 - $total_keys ?> remaining</div>
       </div>
     </div>
 
@@ -136,29 +126,19 @@ $active_page = 'overview';
           <tbody>
             <tr>
               <td style="width:160px;color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Name</td>
-              <td><?= htmlspecialchars($me['full_name'] ?? '—') ?></td>
+              <td><?= htmlspecialchars($user['name'] ?? '—') ?></td>
             </tr>
             <tr>
               <td style="color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Email</td>
-              <td><?= htmlspecialchars($me['email'] ?? '—') ?></td>
+              <td><?= htmlspecialchars($user['sub'] ?? '—') ?></td>
             </tr>
             <tr>
               <td style="color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Company</td>
-              <td><?= htmlspecialchars($me['company'] ?? '—') ?></td>
+              <td><?= htmlspecialchars($user['company'] ?? '—') ?></td>
             </tr>
             <tr>
               <td style="color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Status</td>
-              <td>
-                <?php if ($me['is_active'] ?? false): ?>
-                <span class="badge badge-success">Active</span>
-                <?php else: ?>
-                <span class="badge badge-error">Inactive</span>
-                <?php endif; ?>
-              </td>
-            </tr>
-            <tr>
-              <td style="color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Member Since</td>
-              <td class="text-muted"><?= isset($me['created_at']) ? date('F j, Y', strtotime($me['created_at'])) : '—' ?></td>
+              <td><span class="badge badge-success">Active</span></td>
             </tr>
           </tbody>
         </table>

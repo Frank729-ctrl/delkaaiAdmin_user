@@ -160,6 +160,33 @@ class DelkaiAPI
         }
     }
 
+    // ── Developer key management (via admin API, master-key auth) ────────────
+
+    /**
+     * List all API keys owned by this developer (filters by owner email).
+     */
+    public function developerKeys(string $owner_email): array
+    {
+        $res = $this->request('GET', '/v1/admin/keys/list', [], [
+            $this->masterHeader(DELKAI_MASTER_KEY),
+        ]);
+        $all = $res['data'] ?? [];
+        return array_values(array_filter($all, fn($k) => ($k['owner'] ?? '') === $owner_email));
+    }
+
+    /**
+     * Create a new API key for this developer.
+     */
+    public function developerCreateKey(string $owner_email, string $key_name): array
+    {
+        $res = $this->request('POST', '/v1/admin/keys/create', [
+            'platform'      => $key_name,
+            'owner'         => $owner_email,
+            'requires_hmac' => false,
+        ], [$this->masterHeader(DELKAI_MASTER_KEY)]);
+        return $res['data'] ?? $res;
+    }
+
     // ── Admin ────────────────────────────────────────────────────────────────
 
     private function masterHeader(string $master_key): string

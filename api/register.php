@@ -1,14 +1,13 @@
 <?php
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/auth.php';
-require_once __DIR__ . '/includes/api.php';
+require_once __DIR__ . '/includes/supabase.php';
 
-if (get_session_token()) {
+if (get_auth_user()) {
     header('Location: /dashboard');
     exit;
 }
 
-$api   = new DelkaiAPI(DELKAI_API_URL);
 $error = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -23,20 +22,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Password must be at least 8 characters.';
     } else {
         try {
-            $api->register($email, $password, $full_name, $company);
-            // Auto-login after registration
-            $result = $api->loginFull($email, $password);
-            if ($result && !empty($result['session_token'])) {
-                set_session_token($result['session_token'], $result['expires_at'] ?? null);
-                header('Location: /dashboard');
-                exit;
+            $sb = new SupabaseClient();
+
+            if ($sb->findUser($email)) {
+                $error = 'An account with that email already exists.';
+            } else {
+                $pw_hash = password_hash($password, PASSWORD_BCRYPT);
+                if ($sb->createUser($email, $pw_hash, $full_name, $company)) {
+                    set_auth_cookie($email, $full_name, $company);
+                    header('Location: /dashboard');
+                    exit;
+                } else {
+                    $error = 'Registration failed. Please try again.';
+                }
             }
-            header('Location: /login?registered=1');
-            exit;
         } catch (RuntimeException $e) {
-            $error = $e->getCode() === 409
-                ? 'An account with that email already exists.'
-                : 'Registration failed. Please try again.';
+            $error = 'Registration failed. Please try again.';
         }
     }
 }

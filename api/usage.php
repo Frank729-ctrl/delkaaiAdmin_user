@@ -6,29 +6,20 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/api.php';
 
-require_auth();
+$user  = require_auth();
+$email = $user['sub'];
 
 $api   = new DelkaiAPI(DELKAI_API_URL);
-$token = get_session_token();
-
-$keys     = [];
-$overview = [];
-$error    = null;
+$keys  = [];
+$error = null;
 
 try {
-    $res      = $api->keys($token);
-    $keys     = $res['keys'] ?? [];
-    $overview = $api->overview($token);
+    $keys = $api->developerKeys($email);
 } catch (RuntimeException $e) {
-    if ($e->getCode() === 401) {
-        clear_session_token();
-        header('Location: /login');
-        exit;
-    }
     $error = $e->getMessage();
 }
 
-$total_reqs = $overview['total_requests'] ?? array_sum(array_column($keys, 'usage_count'));
+$total_reqs = array_sum(array_column($keys, 'usage_count'));
 $active_page = 'usage';
 ?><!DOCTYPE html>
 <html lang="en">
@@ -105,7 +96,7 @@ $active_page = 'usage';
               $type  = $key['key_type'] ?? '';
             ?>
             <tr>
-              <td><span class="mono"><?= htmlspecialchars($key['prefix'] ?? '') ?>...</span></td>
+              <td><span class="mono"><?= htmlspecialchars($key['raw_prefix'] ?? $key['prefix'] ?? '') ?>...</span></td>
               <td>
                 <?php if ($type === 'pk'): ?>
                 <span class="badge badge-blue">PK</span>
