@@ -10,8 +10,15 @@ class SupabaseClient
 
     public function __construct()
     {
-        $this->url = rtrim(SUPABASE_URL, '/');
-        $this->key = SUPABASE_SERVICE_KEY;
+        $this->url = rtrim(trim(SUPABASE_URL), '/');
+        $this->key = trim(SUPABASE_SERVICE_KEY);
+
+        if (!$this->url || !str_starts_with($this->url, 'http')) {
+            throw new RuntimeException('SUPABASE_URL is not configured. Add it to Vercel environment variables.');
+        }
+        if (!$this->key) {
+            throw new RuntimeException('SUPABASE_SERVICE_KEY is not configured. Add it to Vercel environment variables.');
+        }
     }
 
     private function post(string $path, array $body): array
