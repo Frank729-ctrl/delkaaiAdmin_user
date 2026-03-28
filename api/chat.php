@@ -13,7 +13,7 @@ $active_page = 'chat';
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Support Chat — DelkaAI Console</title>
+<title>AI Chat — DelkaAI Console</title>
 <link rel="stylesheet" href="/css/style.css">
 <style>
 /* ── Chat page layout ──────────────────────────────────────── */
@@ -221,8 +221,8 @@ $active_page = 'chat';
 
       <div class="chat-page-header">
         <div>
-          <h1>Support Chat</h1>
-          <p>Ask anything about the DelkaAI API, integration, or your console.</p>
+          <h1>AI Chat</h1>
+          <p>A general-purpose AI assistant. Ask anything.</p>
         </div>
         <button class="chat-clear-btn" id="chat-clear-btn" title="Clear conversation">Clear chat</button>
       </div>
@@ -237,7 +237,7 @@ $active_page = 'chat';
             <textarea
               id="chat-input"
               rows="1"
-              placeholder="Ask about endpoints, authentication, errors, integration..."
+              placeholder="Ask anything..."
               aria-label="Chat message"
             ></textarea>
             <button type="submit" class="chat-send-btn" id="chat-send-btn" aria-label="Send">
@@ -286,19 +286,19 @@ $active_page = 'chat';
 
   // ── Render ───────────────────────────────────────────────────
   var SUGGESTIONS = [
-    'How do I authenticate API requests?',
-    'How do I handle SSE streaming in JavaScript?',
-    'Why am I getting a 422 error?',
-    'What\'s the difference between SK and PK?',
-    'How do I maintain chat context across turns?',
+    'Write a Python function to reverse a linked list',
+    'Explain async/await in JavaScript',
+    'What\'s the difference between SQL and NoSQL?',
+    'Help me write a cover letter opening',
+    'Summarise the key ideas in clean code',
   ];
 
   function showEmpty() {
     messagesEl.innerHTML =
       '<div class="chat-empty">' +
         '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>' +
-        '<h3>DelkaAI Support</h3>' +
-        '<p>Ask anything about the API, authentication, streaming, errors, or how to integrate.</p>' +
+        '<h3>DelkaAI Chat</h3>' +
+        '<p>A general-purpose AI assistant. Ask about code, writing, ideas — anything.</p>' +
         '<div class="chat-suggestions">' +
           SUGGESTIONS.map(function(s) {
             return '<button class="chat-suggestion" type="button">' + s + '</button>';
@@ -386,7 +386,7 @@ $active_page = 'chat';
     var thinkingBubble = appendBubble('assistant', '...', null, true);
     sendBtn.disabled = true;
 
-    fetch('/support-chat', {
+    fetch('/general-chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: msg, session_id: session }),
