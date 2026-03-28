@@ -16,8 +16,12 @@ $new_key = null;
 // Ensure a valid Render session, reprovision if missing/expired
 $rs = $user['rs'] ?? null;
 if (!$rs) {
-    $rs = $api->provision($email, $user['name'] ?? '', DELKAI_MASTER_KEY);
-    if ($rs) set_auth_cookie($email, $user['name'] ?? '', $user['company'] ?? null, $rs);
+    try {
+        $rs = $api->provision($email, $user['name'] ?? '', DELKAI_MASTER_KEY);
+        if ($rs) set_auth_cookie($email, $user['name'] ?? '', $user['company'] ?? null, $rs);
+    } catch (RuntimeException $e) {
+        $error = 'Provision failed: ' . $e->getMessage() . ' (code ' . $e->getCode() . ')';
+    }
 }
 
 // ── Handle create ─────────────────────────────────────────────────────────────

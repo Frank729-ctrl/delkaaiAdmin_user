@@ -71,16 +71,12 @@ class DelkaiAPI
      */
     public function provision(string $email, string $full_name, string $master_key): ?string
     {
-        try {
-            $res = $this->request('POST', '/v1/developer/clerk-provision', [
-                'email'     => strtolower($email),
-                'full_name' => $full_name,
-                'clerk_id'  => 'php:' . md5($email),
-            ], ['X-DelkaAI-Master-Key: ' . $master_key]);
-            return $res['session_token'] ?? null;
-        } catch (RuntimeException $e) {
-            return null;
-        }
+        $res = $this->request('POST', '/v1/developer/clerk-provision', [
+            'email'     => strtolower($email),
+            'full_name' => $full_name,
+            'clerk_id'  => 'php:' . md5($email),
+        ], ['X-DelkaAI-Master-Key: ' . $master_key]);
+        return $res['session_token'] ?? null;
     }
 
     // ── Developer auth ───────────────────────────────────────────────────────
