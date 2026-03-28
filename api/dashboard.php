@@ -6,9 +6,10 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/api.php';
 
-$user = require_auth();
-$api  = new DelkaiAPI(DELKAI_API_URL);
-$keys = [];
+$user  = require_auth();
+$api   = new DelkaiAPI(DELKAI_API_URL);
+$keys  = [];
+$error = null;
 
 $rs = $user['rs'] ?? null;
 if ($rs) {

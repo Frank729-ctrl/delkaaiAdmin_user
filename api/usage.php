@@ -10,6 +10,7 @@ $user  = require_auth();
 $email = $user['sub'];
 $api   = new DelkaiAPI(DELKAI_API_URL);
 $keys  = [];
+$error = null;
 
 $rs = $user['rs'] ?? null;
 if ($rs) {
