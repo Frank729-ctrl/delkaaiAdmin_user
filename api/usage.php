@@ -16,7 +16,7 @@ $error = null;
 try {
     $keys = $api->developerKeys($email);
 } catch (RuntimeException $e) {
-    $error = 'API service unavailable — try again shortly.';
+    // Silently degrade — show empty state when API is unavailable
 }
 
 $total_reqs = array_sum(array_column($keys, 'usage_count'));
