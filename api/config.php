@@ -17,9 +17,7 @@ defined('ADMIN_PASSWORD')    || define('ADMIN_PASSWORD',    _env('ADMIN_PASSWORD
 defined('RESEND_API_KEY')    || define('RESEND_API_KEY',    _env('RESEND_API_KEY',    ''));
 defined('RESEND_FROM_EMAIL') || define('RESEND_FROM_EMAIL', _env('RESEND_FROM_EMAIL', 'support@snafrate.com'));
 
-defined('SUPABASE_URL')         || define('SUPABASE_URL',         _env('SUPABASE_URL',         'https://ggylalqzpkbkegtninxh.supabase.co'));
-defined('SUPABASE_SERVICE_KEY') || define('SUPABASE_SERVICE_KEY', _env('SUPABASE_SERVICE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdneWxhbHF6cGtia2VndG5pbnhoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDYwNjIzNiwiZXhwIjoyMDkwMTgyMjM2fQ.H8X_Jyy8u3854LIcDSZhazysuPDcJ2lHIriTpccnOUU'));
-defined('JWT_SECRET')           || define('JWT_SECRET',           _env('JWT_SECRET',           '22bc88187dfa01e6ee28550d402f04aea6b75d7cf9acc4234770e73b2cee5339'));
+defined('JWT_SECRET') || define('JWT_SECRET', _env('JWT_SECRET', '22bc88187dfa01e6ee28550d402f04aea6b75d7cf9acc4234770e73b2cee5339'));
 
 defined('SESSION_COOKIE') || define('SESSION_COOKIE', 'delkai_dev_session');
 defined('ADMIN_COOKIE')   || define('ADMIN_COOKIE',   'delkai_admin_session');

@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/auth.php';
-require_once __DIR__ . '/includes/supabase.php';
+require_once __DIR__ . '/includes/api.php';
 
 if (get_auth_user()) {
     header('Location: /dashboard');
@@ -11,25 +11,34 @@ if (get_auth_user()) {
 $error = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email    = trim($_POST['email']    ?? '');
-    $password = $_POST['password']      ?? '';
+    $email    = strtolower(trim($_POST['email'] ?? ''));
+    $password = $_POST['password']               ?? '';
 
     if (!$email || !$password) {
         $error = 'Email and password are required.';
     } else {
         try {
-            $sb   = new SupabaseClient();
-            $user = $sb->login($email, $password);
+            $api = new DelkaiAPI(DELKAI_API_URL);
+            $res = $api->loginFull($email, $password);
 
-            if ($user) {
-                set_auth_cookie($user['email'], $user['full_name'], $user['company']);
+            if ($res && isset($res['session_token'])) {
+                $me = $api->me($res['session_token']);
+                set_auth_cookie(
+                    $me['email']   ?? $email,
+                    $me['full_name'] ?? explode('@', $email)[0],
+                    $me['company'] ?? null
+                );
                 header('Location: /dashboard');
                 exit;
             } else {
                 $error = 'Invalid email or password.';
             }
         } catch (RuntimeException $e) {
-            $error = 'Sign-in failed: ' . $e->getMessage();
+            if ($e->getCode() === 401) {
+                $error = 'Invalid email or password.';
+            } else {
+                $error = 'Sign-in failed: ' . $e->getMessage();
+            }
         }
     }
 }

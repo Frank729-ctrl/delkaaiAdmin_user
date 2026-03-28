@@ -27,7 +27,7 @@ class DelkaiAPI
 
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 
         $defaultHeaders = ['Content-Type: application/json', 'Accept: application/json'];
