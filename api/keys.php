@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
     if (!$key_name) {
         $error = 'Please enter a name for your API key.';
     } elseif (!$rs) {
-        $error = 'Session unavailable. Please log out and log in again.';
+        $error = $error ?? 'Session unavailable. Please log out and log in again.';
     } else {
         try {
             $new_key = $api->createDeveloperKey($rs, $key_name);
