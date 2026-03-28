@@ -2,7 +2,14 @@
  * DelkaAI Developer Console — Client-side JS
  */
 
-// ── DelkaAI logo spinner (shared across chat + support widget) ─
+// ── DelkaAI static logo (for branding: buttons, headers, avatars) ─
+// Use this everywhere EXCEPT loading/thinking states.
+function delkaLogoSvg(size) {
+  size = size || 28;
+  return '<img src="/images/logo.svg" width="' + size + '" height="' + size + '" alt="DelkaAI" style="display:block;flex-shrink:0;">';
+}
+
+// ── DelkaAI animated spinner (ONLY for thinking / loading states) ─
 function delkaSpinnerSvg(prefix) {
   var p = prefix;
   return '<svg class="delka-logo-svg" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:44px;height:44px">'

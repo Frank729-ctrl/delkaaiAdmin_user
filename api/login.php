@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="login-wrap">
   <div class="login-card">
     <div class="login-logo">
-      <div class="login-logo-icon">D</div>
+      <img src="/images/logo.svg" width="40" height="40" alt="DelkaAI">
       <span class="login-logo-text">DelkaAI</span>
     </div>
 

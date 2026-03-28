@@ -456,7 +456,7 @@ $active_page = 'chat';
       <div class="conv-panel" id="conv-panel">
         <div class="conv-panel-top">
           <div class="conv-model-badge">
-            <svg viewBox="0 0 10 10" width="8" height="8" fill="var(--accent)"><circle cx="5" cy="5" r="5"/></svg>
+            <img src="/images/logo.svg" width="16" height="16" alt="Delka">
             Delka Spark 1.0
           </div>
           <button class="new-chat-btn" id="new-chat-btn" title="New chat">
@@ -683,9 +683,9 @@ $active_page = 'chat';
     var row     = document.createElement('div');
     row.className = 'chat-row' + (isUser ? ' chat-row-user' : '');
 
-    var avatarHtml = '<div class="chat-avatar ' + (isUser ? 'chat-avatar-user' : 'chat-avatar-delka') + '">'
-      + (isUser ? 'You' : 'D')
-      + '</div>';
+    var avatarHtml = isUser
+      ? '<div class="chat-avatar chat-avatar-user">You</div>'
+      : '<div class="chat-avatar chat-avatar-delka"><img src="/images/logo.svg" width="18" height="18" alt="Delka"></div>';
 
     var senderName = isUser ? 'You' : 'Delka';
     var bubbleClass = 'chat-bubble ' + (isUser ? 'chat-bubble-user' : 'chat-bubble-delka') + (isThinking ? ' chat-bubble-thinking' : '');
