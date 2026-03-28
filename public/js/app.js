@@ -177,32 +177,126 @@ function updatePlaygroundForm(endpoint) {
 
   var fields = {
     cv: [
-      { name: 'name',       label: 'Full Name',      type: 'text', placeholder: 'John Doe' },
-      { name: 'email',      label: 'Email',           type: 'email', placeholder: 'john@example.com' },
-      { name: 'experience', label: 'Work Experience', type: 'textarea', placeholder: 'Describe your work history...' },
-      { name: 'skills',     label: 'Skills',          type: 'text', placeholder: 'Python, JavaScript, React...' },
-      { name: 'education',  label: 'Education',       type: 'textarea', placeholder: 'Your educational background...' },
+      { name: 'raw_text', label: 'Applicant Background', type: 'textarea', placeholder: 'Jane Doe, Software Engineer. 5 years Python, FastAPI, Docker. BSc Computer Science, University of Ghana 2018...' },
     ],
     cover_letter: [
-      { name: 'name',         label: 'Full Name',       type: 'text', placeholder: 'John Doe' },
-      { name: 'job_title',    label: 'Job Title',       type: 'text', placeholder: 'Software Engineer' },
-      { name: 'company_name', label: 'Company Name',    type: 'text', placeholder: 'Acme Corp' },
-      { name: 'experience',   label: 'Your Experience', type: 'textarea', placeholder: 'Brief summary of relevant experience...' },
+      { name: 'applicant_name',       label: 'Your Name',       type: 'text',     placeholder: 'Jane Doe' },
+      { name: 'company_name',         label: 'Company Name',    type: 'text',     placeholder: 'Acme Corp' },
+      { name: 'job_title',            label: 'Job Title',       type: 'text',     placeholder: 'Senior Backend Engineer' },
+      { name: 'job_description',      label: 'Job Description', type: 'textarea', placeholder: 'We are looking for a motivated engineer...' },
+      { name: 'applicant_background', label: 'Your Background', type: 'textarea', placeholder: '5 years Python, FastAPI, Docker...' },
     ],
     chat: [
-      { name: 'message', label: 'Message', type: 'textarea', placeholder: 'Ask a question...' },
+      { name: 'message',    label: 'Message',    type: 'textarea', placeholder: 'Ask anything...' },
+      { name: 'session_id', label: 'Session ID', type: 'text',     placeholder: 'user-session-123 (optional, leave blank to auto-generate)' },
+    ],
+    vision: [
+      { name: 'image_url', label: 'Image URL', type: 'text', placeholder: 'https://example.com/photo.jpg' },
+    ],
+    feedback: [
+      { name: 'session_id', label: 'Session ID',    type: 'text',     placeholder: 'The session ID you want to rate' },
+      { name: 'service',    label: 'Service',        type: 'select',   options: ['cv', 'cover_letter', 'chat', 'vision'] },
+      { name: 'rating',     label: 'Rating (1–5)',   type: 'number',   placeholder: '5' },
+      { name: 'comment',    label: 'Comment',        type: 'textarea', placeholder: 'Optional feedback...' },
     ],
   };
 
   var selected = fields[endpoint] || fields['cv'];
 
   container.innerHTML = selected.map(function (f) {
-    var input = f.type === 'textarea'
-      ? '<textarea name="' + f.name + '" placeholder="' + f.placeholder + '"></textarea>'
-      : '<input type="' + f.type + '" name="' + f.name + '" placeholder="' + f.placeholder + '">';
+    var input;
+    if (f.type === 'textarea') {
+      input = '<textarea name="' + f.name + '" placeholder="' + (f.placeholder || '') + '"></textarea>';
+    } else if (f.type === 'select') {
+      input = '<select name="' + f.name + '">' + (f.options || []).map(function(o) {
+        return '<option value="' + o + '">' + o + '</option>';
+      }).join('') + '</select>';
+    } else {
+      input = '<input type="' + f.type + '" name="' + f.name + '" placeholder="' + (f.placeholder || '') + '">';
+    }
     return '<div class="form-group"><label>' + f.label + '</label>' + input + '</div>';
   }).join('');
 }
+
+// ── Floating support chat widget ─────────────────────────────
+(function () {
+  var SESSION_KEY = 'delkai_support_session';
+
+  function getSession() {
+    return localStorage.getItem(SESSION_KEY) || ('console-' + Math.random().toString(36).slice(2));
+  }
+
+  function saveSession(id) {
+    localStorage.setItem(SESSION_KEY, id);
+  }
+
+  function appendMessage(list, role, text) {
+    var div = document.createElement('div');
+    div.className = 'sc-msg sc-msg-' + role;
+    div.textContent = text;
+    list.appendChild(div);
+    list.scrollTop = list.scrollHeight;
+    return div;
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var btn   = document.getElementById('support-chat-btn');
+    var panel = document.getElementById('support-chat-panel');
+    var close = document.getElementById('support-chat-close');
+    var form  = document.getElementById('support-chat-form');
+    var input = document.getElementById('support-chat-input');
+    var list  = document.getElementById('support-chat-messages');
+    if (!btn || !panel) return;
+
+    var session = getSession();
+    saveSession(session);
+
+    btn.addEventListener('click', function () {
+      var open = panel.classList.toggle('sc-open');
+      if (open && list.children.length === 0) {
+        appendMessage(list, 'assistant', 'Hi! I\'m the DelkaAI support assistant. Ask me anything about the API, endpoints, or your integration.');
+      }
+      if (open) setTimeout(function () { input.focus(); }, 100);
+    });
+
+    close.addEventListener('click', function () {
+      panel.classList.remove('sc-open');
+    });
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var msg = input.value.trim();
+      if (!msg) return;
+      input.value = '';
+      appendMessage(list, 'user', msg);
+
+      var thinking = appendMessage(list, 'assistant sc-thinking', '...');
+      var sendBtn = form.querySelector('button');
+      sendBtn.disabled = true;
+
+      fetch('/support-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg, session_id: session }),
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        thinking.remove();
+        if (data.error) {
+          appendMessage(list, 'assistant sc-error', 'Error: ' + data.error);
+        } else {
+          appendMessage(list, 'assistant', data.reply || '(no reply)');
+          if (data.session_id) { session = data.session_id; saveSession(session); }
+        }
+      })
+      .catch(function (err) {
+        thinking.remove();
+        appendMessage(list, 'assistant sc-error', 'Connection error: ' + err.message);
+      })
+      .finally(function () { sendBtn.disabled = false; });
+    });
+  });
+}());
 
 // ── Playground: send request ──────────────────────────────────
 var playgroundForm = document.getElementById('playground-form');

@@ -96,7 +96,9 @@ code.ic { background:var(--surface2); border:1px solid var(--border); border-rad
       <div class="docs-sidebar-title">Endpoints</div>
       <a href="#cv">CV Generation</a>
       <a href="#letter">Cover Letter</a>
-      <a href="#chat">Support Chat</a>
+      <a href="#chat">AI Chat</a>
+      <a href="#vision">Visual Search</a>
+      <a href="#feedback">Feedback</a>
       <a href="#health">Health Check</a>
 
       <div class="docs-sidebar-title">Reference</div>
@@ -370,14 +372,14 @@ cv = resp.json()
 
       <!-- CHAT -->
       <section class="docs-section" id="chat">
-        <h2>Support Chat</h2>
-        <p>Streaming AI chat for career guidance and support. Responses are delivered as Server-Sent Events (SSE).</p>
+        <h2>AI Chat</h2>
+        <p>Multi-turn conversational AI for career guidance, job-search support, and general queries. Responses are delivered as Server-Sent Events (SSE).</p>
 
         <div class="endpoint">
           <div class="endpoint-head">
             <span class="method-post">POST</span>
-            <span class="endpoint-path">/v1/support/chat</span>
-            <span class="endpoint-desc">Streaming chat</span>
+            <span class="endpoint-path">/v1/chat</span>
+            <span class="endpoint-desc">Streaming AI chat</span>
           </div>
           <div class="endpoint-body">
             <h3 style="margin-top:0">Request Body</h3>
@@ -385,8 +387,9 @@ cv = resp.json()
               <thead><tr><th>Parameter</th><th>Type</th><th></th><th>Description</th></tr></thead>
               <tbody>
                 <tr><td><span class="param-name">message</span></td><td><span class="param-type">string</span></td><td><span class="param-req">required</span></td><td>The user's message.</td></tr>
-                <tr><td><span class="param-name">session_id</span></td><td><span class="param-type">string</span></td><td><span class="param-req">required</span></td><td>Unique conversation identifier. Reuse to maintain context.</td></tr>
-                <tr><td><span class="param-name">platform</span></td><td><span class="param-type">string</span></td><td><span class="param-opt">optional</span></td><td>Your platform identifier.</td></tr>
+                <tr><td><span class="param-name">user_id</span></td><td><span class="param-type">string</span></td><td><span class="param-req">required</span></td><td>Unique identifier for the end user.</td></tr>
+                <tr><td><span class="param-name">session_id</span></td><td><span class="param-type">string</span></td><td><span class="param-req">required</span></td><td>Conversation session ID. Reuse the same value to maintain context across turns.</td></tr>
+                <tr><td><span class="param-name">platform</span></td><td><span class="param-type">string</span></td><td><span class="param-opt">optional</span></td><td>Your platform identifier for usage tracking.</td></tr>
               </tbody>
             </table>
 
@@ -397,22 +400,27 @@ cv = resp.json()
                 <button class="code-tab-btn" data-tab="chat-js">JavaScript (SSE)</button>
               </div>
               <div class="code-tab-pane active" id="chat-curl">
-<pre class="doc-code"><span class="hl-cmd">curl</span> -X POST <?= htmlspecialchars($base) ?>/v1/support/chat \
+<pre class="doc-code"><span class="hl-cmd">curl</span> -X POST <?= htmlspecialchars($base) ?>/v1/chat \
   -H <span class="hl-str">"X-DelkaAI-Key: sk_live_your_secret_key"</span> \
   -H <span class="hl-str">"Content-Type: application/json"</span> \
   --no-buffer \
   -d <span class="hl-str">'{
     "message": "How do I write a strong CV summary?",
-    "session_id": "user-abc-123"
+    "user_id": "user-abc",
+    "session_id": "session-123"
   }'</span></pre>
               </div>
               <div class="code-tab-pane" id="chat-js">
 <pre class="doc-code"><span class="hl-comm">// Using the Fetch API with streaming</span>
-<span class="hl-key">const</span> res = <span class="hl-key">await</span> fetch(<span class="hl-str">"<?= htmlspecialchars($base) ?>/v1/support/chat"</span>, {
+<span class="hl-key">const</span> res = <span class="hl-key">await</span> fetch(<span class="hl-str">"<?= htmlspecialchars($base) ?>/v1/chat"</span>, {
   method: <span class="hl-str">"POST"</span>,
   headers: { <span class="hl-str">"X-DelkaAI-Key"</span>: <span class="hl-str">"sk_live_..."</span>,
              <span class="hl-str">"Content-Type"</span>: <span class="hl-str">"application/json"</span> },
-  body: JSON.stringify({ message: <span class="hl-str">"How do I..."</span>, session_id: <span class="hl-str">"user-123"</span> }),
+  body: JSON.stringify({
+    message: <span class="hl-str">"How do I improve my CV?"</span>,
+    user_id: <span class="hl-str">"user-abc"</span>,
+    session_id: <span class="hl-str">"session-123"</span>,
+  }),
 });
 
 <span class="hl-key">const</span> reader = res.body.getReader();
@@ -425,7 +433,127 @@ cv = resp.json()
               </div>
             </div>
 
-            <p style="margin-top:14px;">The response is a stream of <code class="ic">text/event-stream</code> tokens. Each <code class="ic">data:</code> line contains a text chunk.</p>
+            <p style="margin-top:14px;">The response is a stream of <code class="ic">text/event-stream</code> tokens. Each <code class="ic">data:</code> line contains one text chunk; the stream ends with <code class="ic">data: [DONE]</code>.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- VISION -->
+      <section class="docs-section" id="vision">
+        <h2>Visual Search</h2>
+        <p>Analyse an image URL and extract structured career-relevant information — job titles, skills, and context described in the image.</p>
+
+        <div class="endpoint">
+          <div class="endpoint-head">
+            <span class="method-post">POST</span>
+            <span class="endpoint-path">/v1/vision/search</span>
+            <span class="endpoint-desc">Analyse an image</span>
+          </div>
+          <div class="endpoint-body">
+            <h3 style="margin-top:0">Request Body</h3>
+            <table class="param-table">
+              <thead><tr><th>Parameter</th><th>Type</th><th></th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><span class="param-name">image_url</span></td><td><span class="param-type">string</span></td><td><span class="param-req">required</span></td><td>Publicly accessible URL of the image to analyse (JPEG, PNG, WebP).</td></tr>
+                <tr><td><span class="param-name">platform</span></td><td><span class="param-type">string</span></td><td><span class="param-opt">optional</span></td><td>Your platform identifier.</td></tr>
+              </tbody>
+            </table>
+
+            <h3>Example</h3>
+            <div class="code-tabs">
+              <div class="code-tab-btns">
+                <button class="code-tab-btn active" data-tab="vis-curl">curl</button>
+                <button class="code-tab-btn" data-tab="vis-py">Python</button>
+              </div>
+              <div class="code-tab-pane active" id="vis-curl">
+<pre class="doc-code"><span class="hl-cmd">curl</span> -X POST <?= htmlspecialchars($base) ?>/v1/vision/search \
+  -H <span class="hl-str">"X-DelkaAI-Key: sk_live_your_secret_key"</span> \
+  -H <span class="hl-str">"Content-Type: application/json"</span> \
+  -d <span class="hl-str">'{
+    "image_url": "https://example.com/resume-scan.jpg",
+    "platform": "myapp"
+  }'</span></pre>
+              </div>
+              <div class="code-tab-pane" id="vis-py">
+<pre class="doc-code">resp = requests.post(
+    <span class="hl-str">"<?= htmlspecialchars($base) ?>/v1/vision/search"</span>,
+    headers={<span class="hl-str">"X-DelkaAI-Key"</span>: <span class="hl-str">"sk_live_..."</span>},
+    json={<span class="hl-str">"image_url"</span>: <span class="hl-str">"https://example.com/resume-scan.jpg"</span>},
+)
+<span class="hl-key">print</span>(resp.json())</pre>
+              </div>
+            </div>
+
+            <h3>Response</h3>
+<pre class="doc-code">{
+  <span class="hl-key">"description"</span>: <span class="hl-str">"Image shows a resume for a software engineer..."</span>,
+  <span class="hl-key">"extracted_text"</span>: <span class="hl-str">"Jane Doe | Software Engineer | Python, FastAPI..."</span>,
+  <span class="hl-key">"tags"</span>: [<span class="hl-str">"resume"</span>, <span class="hl-str">"software engineer"</span>, <span class="hl-str">"Python"</span>]
+}</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- FEEDBACK -->
+      <section class="docs-section" id="feedback">
+        <h2>Feedback</h2>
+        <p>Submit a star rating and optional comment for any completed session. Helps improve DelkaAI response quality over time.</p>
+
+        <div class="endpoint">
+          <div class="endpoint-head">
+            <span class="method-post">POST</span>
+            <span class="endpoint-path">/v1/feedback</span>
+            <span class="endpoint-desc">Submit session feedback</span>
+          </div>
+          <div class="endpoint-body">
+            <h3 style="margin-top:0">Request Body</h3>
+            <table class="param-table">
+              <thead><tr><th>Parameter</th><th>Type</th><th></th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><span class="param-name">session_id</span></td><td><span class="param-type">string</span></td><td><span class="param-req">required</span></td><td>The session ID returned by any generation or chat request.</td></tr>
+                <tr><td><span class="param-name">service</span></td><td><span class="param-type">string</span></td><td><span class="param-req">required</span></td><td>Which service to rate: <code class="ic">cv</code>, <code class="ic">cover_letter</code>, <code class="ic">chat</code>, or <code class="ic">vision</code>.</td></tr>
+                <tr><td><span class="param-name">rating</span></td><td><span class="param-type">integer</span></td><td><span class="param-req">required</span></td><td>Score from 1 (poor) to 5 (excellent).</td></tr>
+                <tr><td><span class="param-name">comment</span></td><td><span class="param-type">string</span></td><td><span class="param-opt">optional</span></td><td>Free-text feedback.</td></tr>
+              </tbody>
+            </table>
+
+            <h3>Example</h3>
+            <div class="code-tabs">
+              <div class="code-tab-btns">
+                <button class="code-tab-btn active" data-tab="fb-curl">curl</button>
+                <button class="code-tab-btn" data-tab="fb-py">Python</button>
+              </div>
+              <div class="code-tab-pane active" id="fb-curl">
+<pre class="doc-code"><span class="hl-cmd">curl</span> -X POST <?= htmlspecialchars($base) ?>/v1/feedback \
+  -H <span class="hl-str">"X-DelkaAI-Key: sk_live_your_secret_key"</span> \
+  -H <span class="hl-str">"Content-Type: application/json"</span> \
+  -d <span class="hl-str">'{
+    "session_id": "session-xyz-456",
+    "service": "cv",
+    "rating": 5,
+    "comment": "Very accurate and professional output."
+  }'</span></pre>
+              </div>
+              <div class="code-tab-pane" id="fb-py">
+<pre class="doc-code">resp = requests.post(
+    <span class="hl-str">"<?= htmlspecialchars($base) ?>/v1/feedback"</span>,
+    headers={<span class="hl-str">"X-DelkaAI-Key"</span>: <span class="hl-str">"sk_live_..."</span>},
+    json={
+        <span class="hl-str">"session_id"</span>: <span class="hl-str">"session-xyz-456"</span>,
+        <span class="hl-str">"service"</span>:    <span class="hl-str">"cv"</span>,
+        <span class="hl-str">"rating"</span>:     5,
+        <span class="hl-str">"comment"</span>:    <span class="hl-str">"Great output!"</span>,
+    },
+)
+<span class="hl-key">print</span>(resp.json())</pre>
+              </div>
+            </div>
+
+            <h3>Response</h3>
+<pre class="doc-code">{
+  <span class="hl-key">"success"</span>: <span class="hl-val">true</span>,
+  <span class="hl-key">"feedback_id"</span>: <span class="hl-str">"fb_abc123"</span>
+}</pre>
           </div>
         </div>
       </section>
@@ -461,7 +589,8 @@ cv = resp.json()
           <tbody>
             <tr><td>CV Generation</td><td><code class="ic">llama-3.3-70b-versatile</code></td><td>llama3.1 (Ollama)</td></tr>
             <tr><td>Cover Letter</td><td><code class="ic">llama-3.3-70b-versatile</code></td><td>llama3.1 (Ollama)</td></tr>
-            <tr><td>Support Chat</td><td><code class="ic">llama-3.1-8b-instant</code></td><td>mistral (Ollama)</td></tr>
+            <tr><td>AI Chat</td><td><code class="ic">llama-3.1-8b-instant</code></td><td>mistral (Ollama)</td></tr>
+            <tr><td>Visual Search</td><td><code class="ic">llama-3.2-11b-vision-preview</code></td><td>llava (Ollama)</td></tr>
           </tbody>
         </table>
       </section>

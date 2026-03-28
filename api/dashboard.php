@@ -17,10 +17,11 @@ try {
     // Silently degrade — show zero stats when API unavailable
 }
 
-$first_name  = explode(' ', $user['name'] ?? 'Developer')[0];
-$total_keys  = count($keys);
-$active_keys = count(array_filter($keys, fn($k) => $k['is_active'] ?? false));
-$total_reqs  = array_sum(array_column($keys, 'usage_count'));
+$first_name   = explode(' ', $user['name'] ?? 'Developer')[0];
+$sk_keys      = array_filter($keys, fn($k) => ($k['key_type'] ?? '') === 'sk');
+$total_pairs  = count($sk_keys);
+$active_pairs = count(array_filter($sk_keys, fn($k) => $k['is_active'] ?? false));
+$total_reqs   = array_sum(array_column($keys, 'usage_count'));
 
 $active_page = 'overview';
 ?><!DOCTYPE html>
@@ -59,18 +60,18 @@ $active_page = 'overview';
         <div class="stat-icon purple">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
         </div>
-        <div class="stat-label">Total Keys</div>
-        <div class="stat-value"><?= $total_keys ?></div>
-        <div class="stat-delta"><?= $active_keys ?> active</div>
+        <div class="stat-label">Key Pairs</div>
+        <div class="stat-value"><?= $total_pairs ?></div>
+        <div class="stat-delta"><?= $active_pairs ?> active</div>
       </div>
 
       <div class="stat-card">
         <div class="stat-icon green">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
-        <div class="stat-label">Active Keys</div>
-        <div class="stat-value"><?= $active_keys ?></div>
-        <div class="stat-delta">of <?= $total_keys ?> total</div>
+        <div class="stat-label">Active Pairs</div>
+        <div class="stat-value"><?= $active_pairs ?></div>
+        <div class="stat-delta">of <?= $total_pairs ?> pairs</div>
       </div>
 
       <div class="stat-card">
@@ -86,9 +87,9 @@ $active_page = 'overview';
         <div class="stat-icon yellow">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </div>
-        <div class="stat-label">Key Limit</div>
-        <div class="stat-value"><?= $total_keys ?> / 10</div>
-        <div class="stat-delta"><?= 10 - $total_keys ?> remaining</div>
+        <div class="stat-label">Key Pair Limit</div>
+        <div class="stat-value"><?= $total_pairs ?> / 10</div>
+        <div class="stat-delta"><?= 10 - $total_pairs ?> remaining</div>
       </div>
     </div>
 

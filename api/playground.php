@@ -36,42 +36,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Build payload
+    $method  = 'POST';
     $payload = [];
+
     switch ($endpoint) {
         case 'cv':
-            $payload = [
-                'name'       => $_POST['name']       ?? '',
-                'email'      => $_POST['email']       ?? '',
-                'experience' => $_POST['experience']  ?? '',
-                'skills'     => $_POST['skills']      ?? '',
-                'education'  => $_POST['education']   ?? '',
-            ];
-            $path = '/v1/cv/generate';
+            $payload = ['raw_text' => $_POST['raw_text'] ?? '', 'platform' => 'playground'];
+            $path    = '/v1/cv/generate';
             break;
+
         case 'cover_letter':
             $payload = [
-                'name'         => $_POST['name']         ?? '',
-                'job_title'    => $_POST['job_title']    ?? '',
-                'company_name' => $_POST['company_name'] ?? '',
-                'experience'   => $_POST['experience']   ?? '',
+                'applicant_name'       => $_POST['applicant_name']       ?? '',
+                'company_name'         => $_POST['company_name']         ?? '',
+                'job_title'            => $_POST['job_title']            ?? '',
+                'job_description'      => $_POST['job_description']      ?? '',
+                'applicant_background' => $_POST['applicant_background'] ?? '',
+                'platform'             => 'playground',
             ];
             $path = '/v1/cover-letter/generate';
             break;
+
         case 'chat':
-            $payload = ['message' => $_POST['message'] ?? ''];
-            $path    = '/v1/support/chat';
+            $payload = [
+                'message'    => $_POST['message']    ?? '',
+                'user_id'    => 'playground-user',
+                'session_id' => $_POST['session_id'] ?? ('pg-' . md5(session_id() ?: uniqid())),
+                'platform'   => 'playground',
+            ];
+            $path = '/v1/chat';
             break;
+
+        case 'vision':
+            $payload = [
+                'platform'  => 'playground',
+                'image_url' => $_POST['image_url'] ?? '',
+            ];
+            $path = '/v1/vision/search';
+            break;
+
+        case 'feedback':
+            $payload = [
+                'session_id' => $_POST['session_id'] ?? 'playground-session',
+                'service'    => $_POST['service']    ?? 'cv',
+                'rating'     => (int)($_POST['rating'] ?? 5),
+                'comment'    => $_POST['comment']    ?? '',
+            ];
+            $path = '/v1/feedback';
+            break;
+
         default:
             echo json_encode(['error' => 'Unknown endpoint.']);
             exit;
     }
 
-    // Make the real API call
-    $ch = curl_init(DELKAI_API_URL . $path);
+    $ch = curl_init(rtrim(DELKAI_API_URL, '/') . $path);
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT        => 30,
+        CURLOPT_TIMEOUT        => 45,
         CURLOPT_POST           => true,
         CURLOPT_POSTFIELDS     => json_encode($payload),
         CURLOPT_HTTPHEADER     => [
@@ -80,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'X-DelkaAI-Key: ' . $api_key,
         ],
     ]);
-    $body     = curl_exec($ch);
+    $raw      = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err      = curl_error($ch);
     curl_close($ch);
@@ -90,7 +112,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $decoded = json_decode($body, true) ?? ['raw' => $body];
+    // Parse SSE stream for streaming endpoints
+    if (str_contains($raw ?? '', 'data: ')) {
+        $text = '';
+        foreach (explode("\n", $raw) as $line) {
+            $line = trim($line);
+            if (str_starts_with($line, 'data: ')) {
+                $token = substr($line, 6);
+                if ($token !== '[DONE]') $text .= $token;
+            }
+        }
+        $decoded = ['reply' => $text, '_streamed' => true];
+    } else {
+        $decoded = json_decode($raw, true) ?? ['raw' => $raw];
+    }
+
     $decoded['_http_status'] = $httpCode;
     echo json_encode($decoded, JSON_PRETTY_PRINT);
     exit;
@@ -130,7 +166,9 @@ $active_page = 'playground';
                 <select id="playground-endpoint" name="endpoint">
                   <option value="cv">CV Generation — POST /v1/cv/generate</option>
                   <option value="cover_letter">Cover Letter — POST /v1/cover-letter/generate</option>
-                  <option value="chat">Support Chat — POST /v1/support/chat</option>
+                  <option value="chat">AI Chat — POST /v1/chat</option>
+                  <option value="vision">Visual Search — POST /v1/vision/search</option>
+                  <option value="feedback">Feedback — POST /v1/feedback</option>
                 </select>
               </div>
 

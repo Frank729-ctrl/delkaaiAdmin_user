@@ -46,6 +46,11 @@ try {
     $error = $error ?? 'Could not load keys.';
 }
 
+// Count key pairs (SK = 1 pair, each create makes 1 SK + 1 PK)
+$sk_keys   = array_filter($keys, fn($k) => ($k['key_type'] ?? '') === 'sk');
+$pair_count = count($sk_keys);
+$pair_limit = 10;
+
 $active_page = 'keys';
 ?><!DOCTYPE html>
 <html lang="en">
@@ -90,12 +95,16 @@ $active_page = 'keys';
     <div class="keys-header">
       <div>
         <h1>API Keys</h1>
-        <p class="keys-warn">Keep your secret keys safe. Do not share them or commit them to source control.</p>
+        <p class="keys-warn">Each key pair (SK + PK) counts as 1 of your <?= $pair_limit ?> allowed pairs. Never share your Secret Key.</p>
       </div>
+      <?php if ($pair_count < $pair_limit): ?>
       <button class="btn btn-primary" onclick="document.getElementById('create-modal').classList.add('open')">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Create API Key
       </button>
+      <?php else: ?>
+      <span class="badge badge-error" style="font-size:12px;padding:6px 12px;">Limit reached (<?= $pair_limit ?> pairs)</span>
+      <?php endif; ?>
     </div>
 
     <?php if ($error): ?>
@@ -103,29 +112,35 @@ $active_page = 'keys';
     <?php endif; ?>
 
     <?php if ($new_key): ?>
-    <div class="key-reveal">
+    <div class="key-reveal" id="key-reveal-box">
       <div class="key-reveal-header">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
         <span class="key-reveal-title">API Key Created — <?= htmlspecialchars($new_key['platform'] ?? 'New Key') ?></span>
       </div>
-      <div class="key-reveal-warn">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        Save your secret key now — it will not be shown again.
+      <div class="key-reveal-warn" style="background:#451a03;border:1px solid #92400e;border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#fcd34d;display:flex;align-items:flex-start;gap:8px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fcd34d" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div><strong>Copy your Secret Key (SK) now.</strong> This is the only time it will be displayed. Once you leave or refresh this page, it cannot be retrieved.</div>
       </div>
       <?php if (!empty($new_key['secret_key'])): ?>
       <div class="key-reveal-row">
         <span class="key-reveal-label">SK</span>
         <span class="key-reveal-val" id="new-sk"><?= htmlspecialchars($new_key['secret_key']) ?></span>
-        <button class="copy-btn btn btn-secondary btn-xs" data-copy="<?= htmlspecialchars($new_key['secret_key']) ?>">Copy</button>
+        <button class="copy-btn btn btn-primary btn-xs" data-copy="<?= htmlspecialchars($new_key['secret_key']) ?>" id="copy-sk-btn">Copy SK</button>
       </div>
       <?php endif; ?>
       <?php if (!empty($new_key['publishable_key'])): ?>
-      <div class="key-reveal-row">
+      <div class="key-reveal-row" style="margin-top:8px;">
         <span class="key-reveal-label">PK</span>
         <span class="key-reveal-val"><?= htmlspecialchars($new_key['publishable_key']) ?></span>
-        <button class="copy-btn btn btn-secondary btn-xs" data-copy="<?= htmlspecialchars($new_key['publishable_key']) ?>">Copy</button>
+        <button class="copy-btn btn btn-secondary btn-xs" data-copy="<?= htmlspecialchars($new_key['publishable_key']) ?>">Copy PK</button>
       </div>
       <?php endif; ?>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;color:var(--muted);">
+          <input type="checkbox" id="confirm-copied" onchange="document.getElementById('key-reveal-box').style.opacity=this.checked?'0.5':'1'">
+          I've copied and saved my secret key
+        </label>
+      </div>
     </div>
     <?php endif; ?>
 
@@ -133,7 +148,7 @@ $active_page = 'keys';
     <div class="card">
       <div class="card-header">
         <h2>Your API Keys</h2>
-        <span class="badge badge-neutral"><?= count($keys) ?> / 10</span>
+        <span class="badge badge-neutral"><?= $pair_count ?> / <?= $pair_limit ?> key pairs</span>
       </div>
 
       <?php if (empty($keys)): ?>
@@ -179,7 +194,10 @@ $active_page = 'keys';
                 <span class="badge badge-neutral"><?= strtoupper($type) ?></span>
                 <?php endif; ?>
               </td>
-              <td><span class="key-prefix"><?= $prefix ?>...</span></td>
+              <td>
+                <span class="key-prefix"><?= $prefix ?>...</span>
+                <button class="copy-btn btn btn-ghost btn-xs" data-copy="<?= $prefix ?>" style="margin-left:4px;font-size:10px;padding:2px 6px;" title="Copy prefix">⧉</button>
+              </td>
               <td>
                 <?= $active
                   ? '<span class="badge badge-success">Active</span>'

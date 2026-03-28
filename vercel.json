@@ -21,8 +21,9 @@
     { "src": "/dashboard",  "dest": "/api/dashboard.php" },
     { "src": "/keys",       "dest": "/api/keys.php" },
     { "src": "/usage",      "dest": "/api/usage.php" },
-    { "src": "/playground", "dest": "/api/playground.php" },
-    { "src": "/docs",       "dest": "/api/docs.php" },
-    { "src": "/",           "dest": "/api/index.php" }
+    { "src": "/playground",   "dest": "/api/playground.php" },
+    { "src": "/docs",         "dest": "/api/docs.php" },
+    { "src": "/support-chat", "dest": "/api/support_chat.php" },
+    { "src": "/",             "dest": "/api/index.php" }
   ]
 }
