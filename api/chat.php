@@ -256,7 +256,7 @@ $active_page = 'chat';
 <script>
 (function () {
   var STORAGE_KEY  = 'delkai_chat_history';
-  var SESSION_KEY  = 'delkai_support_session';
+  var SESSION_KEY  = 'delkai_chat_session';
   var MAX_HISTORY  = 100;
 
   var messagesEl = document.getElementById('chat-messages');

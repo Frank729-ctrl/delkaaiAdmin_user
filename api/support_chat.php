@@ -61,7 +61,8 @@ if ($err) {
 }
 
 if ($code >= 400) {
-    $detail = json_decode($raw, true)['detail'] ?? 'API error';
+    $body   = json_decode($raw, true) ?? [];
+    $detail = $body['detail'] ?? $body['message'] ?? 'API error';
     echo json_encode(['error' => is_array($detail) ? json_encode($detail) : $detail]);
     exit;
 }
