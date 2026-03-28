@@ -1,6 +1,6 @@
 <?php
 /**
- * Developer Support Chat — dedicated full-page chat interface.
+ * Developer AI Chat — dedicated full-page chat interface.
  */
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/auth.php';
@@ -15,6 +15,8 @@ $active_page = 'chat';
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI Chat — DelkaAI Console</title>
 <link rel="stylesheet" href="/css/style.css">
+<!-- marked.js for markdown rendering -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
 /* ── Chat page layout ──────────────────────────────────────── */
 .chat-page {
@@ -132,7 +134,6 @@ $active_page = 'chat';
   border-radius: 14px;
   font-size: 13px;
   line-height: 1.65;
-  white-space: pre-wrap;
   word-break: break-word;
 }
 .chat-row > div {
@@ -149,15 +150,35 @@ $active_page = 'chat';
   background: var(--accent);
   color: #fff;
   border-bottom-right-radius: 4px;
+  white-space: pre-wrap;
 }
 .chat-bubble-error {
   background: #7f1d1d;
   color: #fca5a5;
 }
 
-.chat-bubble.thinking {
-  opacity: .55;
-  font-style: italic;
+/* ── Markdown styles inside AI bubbles ─────────────────────── */
+.chat-bubble-ai p       { margin: 0 0 8px; }
+.chat-bubble-ai p:last-child { margin-bottom: 0; }
+.chat-bubble-ai h1,
+.chat-bubble-ai h2,
+.chat-bubble-ai h3      { font-size: 14px; font-weight: 700; margin: 12px 0 4px; }
+.chat-bubble-ai ul,
+.chat-bubble-ai ol      { margin: 6px 0 8px; padding-left: 20px; }
+.chat-bubble-ai li      { margin-bottom: 3px; }
+.chat-bubble-ai code    { background: rgba(0,0,0,.25); border-radius: 3px; padding: 1px 5px; font-family: monospace; font-size: 12px; }
+.chat-bubble-ai pre     { background: rgba(0,0,0,.3); border-radius: 6px; padding: 10px 12px; overflow-x: auto; margin: 8px 0; }
+.chat-bubble-ai pre code { background: none; padding: 0; }
+.chat-bubble-ai strong  { font-weight: 700; }
+.chat-bubble-ai em      { font-style: italic; }
+.chat-bubble-ai blockquote { border-left: 3px solid var(--accent); margin: 8px 0; padding-left: 10px; color: var(--muted); }
+.chat-bubble-ai hr      { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
+
+/* ── Thinking bubble (logo spinner) ────────────────────────── */
+.chat-bubble-thinking {
+  background: transparent !important;
+  border: none !important;
+  padding: 4px 2px !important;
 }
 
 .chat-meta {
@@ -271,6 +292,9 @@ $active_page = 'chat';
   var sendBtn    = document.getElementById('chat-send-btn');
   var clearBtn   = document.getElementById('chat-clear-btn');
 
+  // ── Configure marked ────────────────────────────────────────
+  marked.setOptions({ breaks: true, gfm: true });
+
   // ── Session ─────────────────────────────────────────────────
   function getSession() {
     var s = localStorage.getItem(SESSION_KEY);
@@ -295,7 +319,7 @@ $active_page = 'chat';
     'Write a Python function to reverse a linked list',
     'Explain async/await in JavaScript',
     'What\'s the difference between SQL and NoSQL?',
-    'Help me write a cover letter opening',
+    'How do I handle SSE streaming in JavaScript?',
     'Summarise the key ideas in clean code',
   ];
 
@@ -307,7 +331,7 @@ $active_page = 'chat';
         '<p>A general-purpose AI assistant. Ask about code, writing, ideas — anything.</p>' +
         '<div class="chat-suggestions">' +
           SUGGESTIONS.map(function(s) {
-            return '<button class="chat-suggestion" type="button">' + s + '</button>';
+            return '<button class="chat-suggestion" type="button">' + escapeHtml(s) + '</button>';
           }).join('') +
         '</div>' +
       '</div>';
@@ -326,27 +350,69 @@ $active_page = 'chat';
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
-  function appendBubble(role, text, ts, thinking) {
+  function escapeHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // Append a bubble and return the bubble element
+  function appendBubble(role, text, ts, isThinking) {
     var isUser = role === 'user';
     var row = document.createElement('div');
     row.className = 'chat-row' + (isUser ? ' chat-row-user' : '');
-    row.innerHTML =
+
+    var avatarHtml =
       '<div class="chat-avatar ' + (isUser ? 'chat-avatar-user' : 'chat-avatar-ai') + '">' +
         (isUser ? 'You' : 'AI') +
-      '</div>' +
-      '<div>' +
-        '<div class="chat-bubble ' + (isUser ? 'chat-bubble-user' : 'chat-bubble-ai') + (thinking ? ' thinking' : '') + '">' +
-          escapeHtml(text) +
-        '</div>' +
-        (ts ? '<div class="chat-meta">' + formatTime(ts) + '</div>' : '') +
       '</div>';
+
+    var bubbleClass = 'chat-bubble ' + (isUser ? 'chat-bubble-user' : 'chat-bubble-ai') + (isThinking ? ' chat-bubble-thinking' : '');
+    var bubbleContent;
+
+    if (isThinking) {
+      bubbleContent = delkaSpinnerSvg('ct');
+    } else if (isUser) {
+      bubbleContent = escapeHtml(text);
+    } else {
+      bubbleContent = marked.parse(text || '');
+    }
+
+    var metaHtml = ts ? '<div class="chat-meta">' + formatTime(ts) + '</div>' : '<div class="chat-meta"></div>';
+
+    row.innerHTML =
+      avatarHtml +
+      '<div>' +
+        '<div class="' + bubbleClass + '">' + bubbleContent + '</div>' +
+        metaHtml +
+      '</div>';
+
     messagesEl.appendChild(row);
     messagesEl.scrollTop = messagesEl.scrollHeight;
     return row.querySelector('.chat-bubble');
   }
 
-  function escapeHtml(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // Typewriter effect — types text into bubble word by word, renders markdown at end
+  function typewriterReveal(bubble, text, onDone) {
+    var words = text.split(' ');
+    var current = '';
+    var i = 0;
+    var DELAY = 18; // ms per word
+
+    function step() {
+      if (i >= words.length) {
+        // Final render with full markdown
+        bubble.innerHTML = marked.parse(text);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        if (onDone) onDone();
+        return;
+      }
+      current += (i === 0 ? '' : ' ') + words[i];
+      i++;
+      // Live markdown render as we type
+      bubble.innerHTML = marked.parse(current);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      setTimeout(step, DELAY);
+    }
+    step();
   }
 
   // ── Load history on page open ────────────────────────────────
@@ -389,7 +455,8 @@ $active_page = 'chat';
     h.push({ role: 'user', text: msg, ts: ts });
     saveHistory(h);
 
-    var thinkingBubble = appendBubble('assistant', '...', null, true);
+    // Show pulsing thinking indicator
+    var thinkingBubble = appendBubble('assistant', '', null, true);
     sendBtn.disabled = true;
 
     fetch('/general-chat', {
@@ -400,23 +467,33 @@ $active_page = 'chat';
     .then(function(r) { return r.json(); })
     .then(function(data) {
       var replyTs = Date.now();
+
       if (data.error) {
         thinkingBubble.className = 'chat-bubble chat-bubble-ai chat-bubble-error';
         thinkingBubble.textContent = 'Error: ' + data.error;
-      } else {
-        var reply = data.reply || '(no reply)';
-        thinkingBubble.className = 'chat-bubble chat-bubble-ai';
-        thinkingBubble.textContent = reply;
-        thinkingBubble.closest('.chat-row').querySelector('.chat-meta') ||
-          thinkingBubble.insertAdjacentHTML('afterend', '<div class="chat-meta">' + formatTime(replyTs) + '</div>');
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        return;
+      }
 
+      var reply = data.reply || '(no reply)';
+
+      // Switch bubble out of thinking state
+      thinkingBubble.className = 'chat-bubble chat-bubble-ai';
+      thinkingBubble.style.cssText = '';
+      thinkingBubble.innerHTML = '';
+
+      // Update timestamp on the meta div
+      var metaEl = thinkingBubble.closest('.chat-row').querySelector('.chat-meta');
+      if (metaEl) metaEl.textContent = formatTime(replyTs);
+
+      if (data.session_id) { session = data.session_id; saveSession(session); }
+
+      // Typewriter reveal
+      typewriterReveal(thinkingBubble, reply, function() {
         var h2 = loadHistory();
         h2.push({ role: 'assistant', text: reply, ts: replyTs });
         saveHistory(h2);
-
-        if (data.session_id) { session = data.session_id; saveSession(session); }
-      }
-      messagesEl.scrollTop = messagesEl.scrollHeight;
+      });
     })
     .catch(function(err) {
       thinkingBubble.className = 'chat-bubble chat-bubble-ai chat-bubble-error';

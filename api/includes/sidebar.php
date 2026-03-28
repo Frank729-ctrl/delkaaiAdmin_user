@@ -5,9 +5,79 @@
  */
 $active_page = $active_page ?? '';
 ?>
-<aside class="sidebar">
+
+<!-- Mobile sidebar toggle -->
+<button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle navigation">
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+
+<!-- Sidebar overlay (mobile) -->
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<aside class="sidebar" id="sidebar">
   <a href="/dashboard" class="sidebar-logo">
-    <div class="sidebar-logo-icon">D</div>
+    <!-- DelkaAI animated logo -->
+    <svg class="delka-logo-svg" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:28px;height:28px">
+      <defs>
+        <filter id="sl-ng" x="-150%" y="-150%" width="400%" height="400%">
+          <feGaussianBlur stdDeviation="5" result="b1"/>
+          <feGaussianBlur stdDeviation="11" result="b2"/>
+          <feMerge><feMergeNode in="b2"/><feMergeNode in="b1"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="sl-sg" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur stdDeviation="3" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="sl-og" x="-200%" y="-200%" width="500%" height="500%">
+          <feGaussianBlur stdDeviation="4" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <radialGradient id="sl-nd" cx="38%" cy="32%" r="62%">
+          <stop offset="0%"   stop-color="#D0CAFF"/>
+          <stop offset="50%"  stop-color="#7C6FFF"/>
+          <stop offset="100%" stop-color="#4A3FCC"/>
+        </radialGradient>
+        <radialGradient id="sl-hz" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="#7C6FFF" stop-opacity="1"/>
+          <stop offset="100%" stop-color="#7C6FFF" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="sl-ar" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"   stop-color="#A89BFF" stop-opacity="0"/>
+          <stop offset="45%"  stop-color="#7C6FFF" stop-opacity="1"/>
+          <stop offset="100%" stop-color="#D0CAFF" stop-opacity=".5"/>
+        </linearGradient>
+        <linearGradient id="sl-sp" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%"   stop-color="#A89BFF" stop-opacity="0"/>
+          <stop offset="40%"  stop-color="#7C6FFF" stop-opacity="1"/>
+          <stop offset="100%" stop-color="#D0CAFF" stop-opacity=".5"/>
+        </linearGradient>
+      </defs>
+      <!-- Base D ghost -->
+      <line x1="30" y1="12" x2="30" y2="108" stroke="white" stroke-width="7.5" stroke-linecap="round" opacity="0.12"/>
+      <line x1="30" y1="12" x2="66"  y2="12"  stroke="white" stroke-width="7.5" stroke-linecap="round" opacity="0.12"/>
+      <line x1="30" y1="108" x2="66" y2="108" stroke="white" stroke-width="7.5" stroke-linecap="round" opacity="0.12"/>
+      <line x1="30" y1="60" x2="52"  y2="60"  stroke="white" stroke-width="7.5" stroke-linecap="round" opacity="0.12"/>
+      <path d="M 66 12 C 124 12 124 108 66 108" stroke="white" stroke-width="7.5" stroke-linecap="round" fill="none" opacity="0.12"/>
+      <!-- Shimmer sweep -->
+      <line x1="30" y1="12" x2="30" y2="108" stroke="url(#sl-sp)" stroke-width="7.5" stroke-linecap="round" class="delka-anim-spine"     filter="url(#sl-sg)"/>
+      <line x1="30" y1="60" x2="52" y2="60"  stroke="url(#sl-ar)" stroke-width="7.5" stroke-linecap="round" class="delka-anim-connector" filter="url(#sl-sg)"/>
+      <path d="M 66 12 C 124 12 124 108 66 108" stroke="url(#sl-ar)" stroke-width="7.5" stroke-linecap="round" fill="none" class="delka-anim-arc" filter="url(#sl-sg)"/>
+      <!-- Orbit track -->
+      <circle cx="60" cy="60" r="24" stroke="#7C6FFF" stroke-width="0.6" fill="none" opacity="0.07"/>
+      <!-- Orbiting dot -->
+      <g class="delka-anim-orbit" filter="url(#sl-og)">
+        <circle cx="60" cy="60" r="4.5" fill="#A89BFF"/>
+        <circle cx="60" cy="60" r="2"   fill="white"/>
+      </g>
+      <!-- Node hazes -->
+      <circle cx="60" cy="60" r="20" fill="url(#sl-hz)" class="delka-anim-haze1"/>
+      <circle cx="60" cy="60" r="13" fill="url(#sl-hz)" class="delka-anim-haze2"/>
+      <!-- Node core -->
+      <g class="delka-anim-breathe" filter="url(#sl-ng)">
+        <circle cx="60" cy="60" r="9" fill="url(#sl-nd)"/>
+        <circle cx="56" cy="56" r="3" fill="white" opacity="0.4"/>
+      </g>
+    </svg>
     <span class="sidebar-logo-text">DelkaAI</span>
   </a>
 
@@ -64,6 +134,7 @@ $active_page = $active_page ?? '';
   border:none; cursor:pointer; box-shadow:0 4px 20px rgba(124,58,237,.45);
   display:flex; align-items:center; justify-content:center;
   transition:transform .15s, box-shadow .15s;
+  overflow: hidden;
 }
 #support-chat-btn:hover { transform:scale(1.08); box-shadow:0 6px 28px rgba(124,58,237,.55); }
 #support-chat-panel {
@@ -92,10 +163,10 @@ $active_page = $active_page ?? '';
   max-width:90%; padding:8px 12px; border-radius:10px; font-size:13px; line-height:1.5;
   word-break:break-word; white-space:pre-wrap;
 }
-.sc-msg-user { align-self:flex-end; background:var(--accent,#7c3aed); color:#fff; border-bottom-right-radius:3px; }
+.sc-msg-user      { align-self:flex-end;  background:var(--accent,#7c3aed); color:#fff; border-bottom-right-radius:3px; }
 .sc-msg-assistant { align-self:flex-start; background:var(--surface2,#27272a); color:var(--text,#fafafa); border-bottom-left-radius:3px; }
-.sc-msg-assistant.sc-thinking { opacity:.6; font-style:italic; }
-.sc-msg-assistant.sc-error { background:#7f1d1d; color:#fca5a5; }
+.sc-msg-assistant.sc-thinking { background:transparent; padding:4px 2px; }
+.sc-msg-assistant.sc-error    { background:#7f1d1d; color:#fca5a5; }
 #support-chat-form {
   display:flex; gap:8px; padding:10px 12px;
   border-top:1px solid var(--border,#27272a);
@@ -114,8 +185,63 @@ $active_page = $active_page ?? '';
 #support-chat-form button:disabled { opacity:.5; cursor:default; }
 </style>
 
+<!-- Support chat button uses the logo SVG as icon -->
 <button id="support-chat-btn" title="Support Chat" aria-label="Open support chat">
-  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  <svg class="delka-logo-svg" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:32px;height:32px">
+    <defs>
+      <filter id="sb-ng" x="-150%" y="-150%" width="400%" height="400%">
+        <feGaussianBlur stdDeviation="5" result="b1"/>
+        <feGaussianBlur stdDeviation="11" result="b2"/>
+        <feMerge><feMergeNode in="b2"/><feMergeNode in="b1"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="sb-sg" x="-100%" y="-100%" width="300%" height="300%">
+        <feGaussianBlur stdDeviation="3" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="sb-og" x="-200%" y="-200%" width="500%" height="500%">
+        <feGaussianBlur stdDeviation="4" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <radialGradient id="sb-nd" cx="38%" cy="32%" r="62%">
+        <stop offset="0%"   stop-color="#D0CAFF"/>
+        <stop offset="50%"  stop-color="#fff"/>
+        <stop offset="100%" stop-color="#ccc"/>
+      </radialGradient>
+      <radialGradient id="sb-hz" cx="50%" cy="50%" r="50%">
+        <stop offset="0%"   stop-color="#fff" stop-opacity=".6"/>
+        <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="sb-ar" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%"   stop-color="#fff" stop-opacity="0"/>
+        <stop offset="45%"  stop-color="#fff" stop-opacity=".8"/>
+        <stop offset="100%" stop-color="#fff" stop-opacity=".4"/>
+      </linearGradient>
+      <linearGradient id="sb-sp" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%"   stop-color="#fff" stop-opacity="0"/>
+        <stop offset="40%"  stop-color="#fff" stop-opacity=".8"/>
+        <stop offset="100%" stop-color="#fff" stop-opacity=".4"/>
+      </linearGradient>
+    </defs>
+    <line x1="30" y1="12" x2="30" y2="108" stroke="white" stroke-width="7.5" stroke-linecap="round" opacity="0.25"/>
+    <line x1="30" y1="12" x2="66"  y2="12"  stroke="white" stroke-width="7.5" stroke-linecap="round" opacity="0.25"/>
+    <line x1="30" y1="108" x2="66" y2="108" stroke="white" stroke-width="7.5" stroke-linecap="round" opacity="0.25"/>
+    <line x1="30" y1="60" x2="52"  y2="60"  stroke="white" stroke-width="7.5" stroke-linecap="round" opacity="0.25"/>
+    <path d="M 66 12 C 124 12 124 108 66 108" stroke="white" stroke-width="7.5" stroke-linecap="round" fill="none" opacity="0.25"/>
+    <line x1="30" y1="12" x2="30" y2="108" stroke="url(#sb-sp)" stroke-width="7.5" stroke-linecap="round" class="delka-anim-spine"     filter="url(#sb-sg)"/>
+    <line x1="30" y1="60" x2="52" y2="60"  stroke="url(#sb-ar)" stroke-width="7.5" stroke-linecap="round" class="delka-anim-connector" filter="url(#sb-sg)"/>
+    <path d="M 66 12 C 124 12 124 108 66 108" stroke="url(#sb-ar)" stroke-width="7.5" stroke-linecap="round" fill="none" class="delka-anim-arc" filter="url(#sb-sg)"/>
+    <circle cx="60" cy="60" r="24" stroke="#fff" stroke-width="0.6" fill="none" opacity="0.1"/>
+    <g class="delka-anim-orbit" filter="url(#sb-og)">
+      <circle cx="60" cy="60" r="4.5" fill="rgba(255,255,255,.8)"/>
+      <circle cx="60" cy="60" r="2"   fill="white"/>
+    </g>
+    <circle cx="60" cy="60" r="20" fill="url(#sb-hz)" class="delka-anim-haze1"/>
+    <circle cx="60" cy="60" r="13" fill="url(#sb-hz)" class="delka-anim-haze2"/>
+    <g class="delka-anim-breathe" filter="url(#sb-ng)">
+      <circle cx="60" cy="60" r="9" fill="url(#sb-nd)"/>
+      <circle cx="56" cy="56" r="3" fill="white" opacity="0.5"/>
+    </g>
+  </svg>
 </button>
 
 <div id="support-chat-panel" role="dialog" aria-label="Support chat">

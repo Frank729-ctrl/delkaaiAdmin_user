@@ -2,6 +2,66 @@
  * DelkaAI Developer Console — Client-side JS
  */
 
+// ── DelkaAI logo spinner (shared across chat + support widget) ─
+function delkaSpinnerSvg(prefix) {
+  var p = prefix;
+  return '<svg class="delka-logo-svg" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:44px;height:44px">'
+    + '<defs>'
+    + '<filter id="' + p + '-ng" x="-150%" y="-150%" width="400%" height="400%">'
+    +   '<feGaussianBlur stdDeviation="5" result="b1"/>'
+    +   '<feGaussianBlur stdDeviation="11" result="b2"/>'
+    +   '<feMerge><feMergeNode in="b2"/><feMergeNode in="b1"/><feMergeNode in="SourceGraphic"/></feMerge>'
+    + '</filter>'
+    + '<filter id="' + p + '-sg" x="-100%" y="-100%" width="300%" height="300%">'
+    +   '<feGaussianBlur stdDeviation="3" result="b"/>'
+    +   '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>'
+    + '</filter>'
+    + '<filter id="' + p + '-og" x="-200%" y="-200%" width="500%" height="500%">'
+    +   '<feGaussianBlur stdDeviation="4" result="b"/>'
+    +   '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>'
+    + '</filter>'
+    + '<radialGradient id="' + p + '-nd" cx="38%" cy="32%" r="62%">'
+    +   '<stop offset="0%" stop-color="#D0CAFF"/>'
+    +   '<stop offset="50%" stop-color="#7C6FFF"/>'
+    +   '<stop offset="100%" stop-color="#4A3FCC"/>'
+    + '</radialGradient>'
+    + '<radialGradient id="' + p + '-hz" cx="50%" cy="50%" r="50%">'
+    +   '<stop offset="0%" stop-color="#7C6FFF" stop-opacity="1"/>'
+    +   '<stop offset="100%" stop-color="#7C6FFF" stop-opacity="0"/>'
+    + '</radialGradient>'
+    + '<linearGradient id="' + p + '-ar" x1="0%" y1="0%" x2="100%" y2="100%">'
+    +   '<stop offset="0%" stop-color="#A89BFF" stop-opacity="0"/>'
+    +   '<stop offset="45%" stop-color="#7C6FFF" stop-opacity="1"/>'
+    +   '<stop offset="100%" stop-color="#D0CAFF" stop-opacity=".5"/>'
+    + '</linearGradient>'
+    + '<linearGradient id="' + p + '-sp" x1="0%" y1="0%" x2="0%" y2="100%">'
+    +   '<stop offset="0%" stop-color="#A89BFF" stop-opacity="0"/>'
+    +   '<stop offset="40%" stop-color="#7C6FFF" stop-opacity="1"/>'
+    +   '<stop offset="100%" stop-color="#D0CAFF" stop-opacity=".5"/>'
+    + '</linearGradient>'
+    + '</defs>'
+    + '<line x1="30" y1="12" x2="30" y2="108" stroke="white" stroke-width="7.5" stroke-linecap="round" opacity="0.12"/>'
+    + '<line x1="30" y1="12" x2="66" y2="12" stroke="white" stroke-width="7.5" stroke-linecap="round" opacity="0.12"/>'
+    + '<line x1="30" y1="108" x2="66" y2="108" stroke="white" stroke-width="7.5" stroke-linecap="round" opacity="0.12"/>'
+    + '<line x1="30" y1="60" x2="52" y2="60" stroke="white" stroke-width="7.5" stroke-linecap="round" opacity="0.12"/>'
+    + '<path d="M 66 12 C 124 12 124 108 66 108" stroke="white" stroke-width="7.5" stroke-linecap="round" fill="none" opacity="0.12"/>'
+    + '<line x1="30" y1="12" x2="30" y2="108" stroke="url(#' + p + '-sp)" stroke-width="7.5" stroke-linecap="round" class="delka-anim-spine" filter="url(#' + p + '-sg)"/>'
+    + '<line x1="30" y1="60" x2="52" y2="60" stroke="url(#' + p + '-ar)" stroke-width="7.5" stroke-linecap="round" class="delka-anim-connector" filter="url(#' + p + '-sg)"/>'
+    + '<path d="M 66 12 C 124 12 124 108 66 108" stroke="url(#' + p + '-ar)" stroke-width="7.5" stroke-linecap="round" fill="none" class="delka-anim-arc" filter="url(#' + p + '-sg)"/>'
+    + '<circle cx="60" cy="60" r="24" stroke="#7C6FFF" stroke-width="0.6" fill="none" opacity="0.07"/>'
+    + '<g class="delka-anim-orbit" filter="url(#' + p + '-og)">'
+    +   '<circle cx="60" cy="60" r="4.5" fill="#A89BFF"/>'
+    +   '<circle cx="60" cy="60" r="2" fill="white"/>'
+    + '</g>'
+    + '<circle cx="60" cy="60" r="20" fill="url(#' + p + '-hz)" class="delka-anim-haze1"/>'
+    + '<circle cx="60" cy="60" r="13" fill="url(#' + p + '-hz)" class="delka-anim-haze2"/>'
+    + '<g class="delka-anim-breathe" filter="url(#' + p + '-ng)">'
+    +   '<circle cx="60" cy="60" r="9" fill="url(#' + p + '-nd)"/>'
+    +   '<circle cx="56" cy="56" r="3" fill="white" opacity="0.4"/>'
+    + '</g>'
+    + '</svg>';
+}
+
 // ── Navigation loading bar ────────────────────────────────────
 (function () {
   var bar = document.createElement('div');
@@ -270,7 +330,11 @@ function updatePlaygroundForm(endpoint) {
       input.value = '';
       appendMessage(list, 'user', msg);
 
-      var thinking = appendMessage(list, 'assistant sc-thinking', '...');
+      var thinking = document.createElement('div');
+      thinking.className = 'sc-msg sc-msg-assistant sc-thinking';
+      thinking.innerHTML = delkaSpinnerSvg('sw');
+      list.appendChild(thinking);
+      list.scrollTop = list.scrollHeight;
       var sendBtn = form.querySelector('button');
       sendBtn.disabled = true;
 
@@ -297,6 +361,35 @@ function updatePlaygroundForm(endpoint) {
     });
   });
 }());
+
+// ── Mobile sidebar toggle ─────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function () {
+  var toggleBtn = document.getElementById('sidebar-toggle');
+  var sidebar   = document.getElementById('sidebar');
+  var overlay   = document.getElementById('sidebar-overlay');
+  if (!toggleBtn || !sidebar || !overlay) return;
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    overlay.classList.add('active');
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+  }
+
+  toggleBtn.addEventListener('click', function () {
+    sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+  });
+  overlay.addEventListener('click', closeSidebar);
+
+  // Close sidebar when a nav link is clicked on mobile
+  sidebar.querySelectorAll('.nav-link').forEach(function (link) {
+    link.addEventListener('click', function () {
+      if (window.innerWidth <= 768) closeSidebar();
+    });
+  });
+});
 
 // ── Playground: send request ──────────────────────────────────
 var playgroundForm = document.getElementById('playground-form');
