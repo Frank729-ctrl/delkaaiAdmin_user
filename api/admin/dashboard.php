@@ -55,7 +55,7 @@ $active_page = 'dashboard';
     <!-- System health -->
     <?php
     $api_status   = $health['status']       ?? 'unknown';
-    $groq_status  = $health['groq_status']  ?? ($health['data']['groq_status'] ?? 'unknown');
+    $groq_status  = $health['providers']['groq'] ?? 'unknown';
     $total_keys   = $metrics['total_keys']  ?? ($metrics['data']['total_keys'] ?? '—');
     $total_reqs   = $metrics['total_requests'] ?? ($metrics['data']['total_requests'] ?? '—');
     ?>

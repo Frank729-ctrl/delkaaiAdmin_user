@@ -32,8 +32,8 @@ $active_page = 'users';
     <div class="alert alert-info">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       <div>
-        <strong>Managed via Supabase</strong><br>
-        Developer accounts are managed through the Supabase dashboard. Use the Supabase admin console to view, deactivate, or delete developer accounts and their associated sessions.
+        <strong>Managed via PostgreSQL</strong><br>
+        Developer accounts are stored in the <code>console_users</code> table on the Render Supabase project. Use the Supabase table editor or psql to view, deactivate, or delete accounts and sessions.
       </div>
     </div>
 
@@ -41,14 +41,13 @@ $active_page = 'users';
       <div class="card-header"><h2>Developer Account Management</h2></div>
       <div class="card-body">
         <p class="text-muted" style="font-size:13px;margin-bottom:20px;">
-          The following actions are available through the Supabase admin console:
+          Developer accounts use self-contained bcrypt + JWT auth (no Supabase Auth). The following actions require direct database access:
         </p>
         <ul style="color:var(--muted);font-size:13px;line-height:2;padding-left:20px;">
-          <li>View all registered developer accounts</li>
-          <li>Deactivate or reactivate accounts</li>
-          <li>Invalidate active sessions</li>
+          <li>View all registered developer accounts (<code>console_users</code>)</li>
+          <li>Deactivate or reactivate accounts (set <code>is_active = false</code>)</li>
+          <li>Invalidate active sessions (<code>console_sessions</code> table)</li>
           <li>Delete accounts and associated data</li>
-          <li>View login history and session metadata</li>
         </ul>
 
         <hr class="divider">
@@ -56,7 +55,7 @@ $active_page = 'users';
         <div class="d-flex gap-12" style="flex-wrap:wrap;">
           <a href="https://supabase.com/dashboard" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            Open Supabase Dashboard
+            Open Supabase Table Editor
           </a>
         </div>
       </div>
