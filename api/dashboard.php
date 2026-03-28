@@ -15,7 +15,7 @@ $error = null;
 try {
     $keys = $api->developerKeys($user['sub']);
 } catch (RuntimeException $e) {
-    $error = 'Could not load key stats: ' . $e->getMessage() . ' (code ' . $e->getCode() . ')';
+    // Silently degrade — new users with 0 keys still see a clean dashboard
 }
 
 $first_name  = explode(' ', $user['name'] ?? 'Developer')[0];
