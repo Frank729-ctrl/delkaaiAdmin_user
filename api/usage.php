@@ -8,15 +8,22 @@ require_once __DIR__ . '/includes/api.php';
 
 $user  = require_auth();
 $email = $user['sub'];
-
 $api   = new DelkaiAPI(DELKAI_API_URL);
 $keys  = [];
-$error = null;
 
-try {
-    $keys = $api->developerKeys($email);
-} catch (RuntimeException $e) {
-    // Silently degrade — show empty state when API is unavailable
+$rs = $user['rs'] ?? null;
+if ($rs) {
+    try {
+        $keys = $api->keys($rs)['keys'] ?? [];
+    } catch (RuntimeException $e) {
+        if ($e->getCode() === 401) {
+            $rs = $api->provision($email, $user['name'] ?? '', DELKAI_MASTER_KEY);
+            if ($rs) {
+                set_auth_cookie($email, $user['name'] ?? '', $user['company'] ?? null, $rs);
+                try { $keys = $api->keys($rs)['keys'] ?? []; } catch (RuntimeException $e2) {}
+            }
+        }
+    }
 }
 
 $total_reqs = array_sum(array_column($keys, 'usage_count'));

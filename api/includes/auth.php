@@ -17,16 +17,20 @@ function _b64d(string $data): string
     return base64_decode(strtr($data, '-_', '+/'));
 }
 
-function jwt_issue(string $email, string $full_name, ?string $company): string
+function jwt_issue(string $email, string $full_name, ?string $company, ?string $render_session = null): string
 {
-    $h = _b64u(json_encode(['alg' => 'HS256', 'typ' => 'JWT']));
-    $p = _b64u(json_encode([
+    $payload = [
         'sub'     => strtolower($email),
         'name'    => $full_name,
         'company' => $company,
         'iat'     => time(),
         'exp'     => time() + 86400 * 7,
-    ]));
+    ];
+    if ($render_session !== null) {
+        $payload['rs'] = $render_session;
+    }
+    $h = _b64u(json_encode(['alg' => 'HS256', 'typ' => 'JWT']));
+    $p = _b64u(json_encode($payload));
     $s = _b64u(hash_hmac('sha256', "$h.$p", JWT_SECRET, true));
     return "$h.$p.$s";
 }
@@ -55,9 +59,9 @@ function get_auth_user(): ?array
     return jwt_decode($raw);
 }
 
-function set_auth_cookie(string $email, string $full_name, ?string $company): void
+function set_auth_cookie(string $email, string $full_name, ?string $company, ?string $render_session = null): void
 {
-    $token = jwt_issue($email, $full_name, $company);
+    $token = jwt_issue($email, $full_name, $company, $render_session);
     setcookie(SESSION_COOKIE, $token, [
         'expires'  => time() + 86400 * 7,
         'path'     => '/',

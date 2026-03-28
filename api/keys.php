@@ -8,26 +8,28 @@ require_once __DIR__ . '/includes/api.php';
 
 $user  = require_auth();
 $email = $user['sub'];
-
-$api     = new DelkaiAPI(DELKAI_API_URL);
-$keys    = [];
-$error   = null;
+$api   = new DelkaiAPI(DELKAI_API_URL);
+$keys  = [];
+$error = null;
 $new_key = null;
+
+// Ensure a valid Render session, reprovision if missing/expired
+$rs = $user['rs'] ?? null;
+if (!$rs) {
+    $rs = $api->provision($email, $user['name'] ?? '', DELKAI_MASTER_KEY);
+    if ($rs) set_auth_cookie($email, $user['name'] ?? '', $user['company'] ?? null, $rs);
+}
 
 // ── Handle create ─────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'create') {
     $key_name = trim($_POST['key_name'] ?? '');
     if (!$key_name) {
         $error = 'Please enter a name for your API key.';
+    } elseif (!$rs) {
+        $error = 'Session unavailable. Please log out and log in again.';
     } else {
         try {
-            // Check limit before creating
-            $existing = $api->developerKeys($email);
-            if (count($existing) >= 10) {
-                $error = 'Key limit reached. You can have a maximum of 10 API keys.';
-            } else {
-                $new_key = $api->developerCreateKey($email, $key_name);
-            }
+            $new_key = $api->createDeveloperKey($rs, $key_name);
         } catch (RuntimeException $e) {
             $error = 'Failed to create key: ' . $e->getMessage();
         }
@@ -37,16 +39,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
 // ── Handle revoke ─────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'revoke') {
     $prefix = trim($_POST['key_prefix'] ?? '');
-    if ($prefix) {
+    if ($prefix && $rs) {
         try {
-            // Only allow revoking keys that belong to this user
-            $owned = $api->developerKeys($email);
-            $owned_prefixes = array_column($owned, 'raw_prefix');
-            if (!in_array($prefix, $owned_prefixes, true)) {
-                $error = 'Key not found.';
-            } else {
-                $api->adminRevokeKey(DELKAI_MASTER_KEY, $prefix);
-            }
+            $api->revokeDeveloperKey($rs, $prefix);
         } catch (RuntimeException $e) {
             $error = 'Failed to revoke key: ' . $e->getMessage();
         }
@@ -54,10 +49,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'revok
 }
 
 // ── Load keys ─────────────────────────────────────────────────────────────────
-try {
-    $keys = $api->developerKeys($email);
-} catch (RuntimeException $e) {
-    $error = $error ?? $e->getMessage();
+if ($rs) {
+    try {
+        $keys = $api->keys($rs)['keys'] ?? [];
+    } catch (RuntimeException $e) {
+        $error = $error ?? 'Could not load keys.';
+    }
 }
 
 $active_page = 'keys';

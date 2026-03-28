@@ -6,16 +6,24 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/api.php';
 
-$user = require_auth();   // JWT payload: sub=email, name, company
+$user = require_auth();
+$api  = new DelkaiAPI(DELKAI_API_URL);
+$keys = [];
 
-$api   = new DelkaiAPI(DELKAI_API_URL);
-$keys  = [];
-$error = null;
-
-try {
-    $keys = $api->developerKeys($user['sub']);
-} catch (RuntimeException $e) {
-    // Silently degrade — new users with 0 keys still see a clean dashboard
+$rs = $user['rs'] ?? null;
+if ($rs) {
+    try {
+        $keys = $api->keys($rs)['keys'] ?? [];
+    } catch (RuntimeException $e) {
+        if ($e->getCode() === 401) {
+            // Session expired — reprovision silently
+            $rs = $api->provision($user['sub'], $user['name'] ?? '', DELKAI_MASTER_KEY);
+            if ($rs) {
+                set_auth_cookie($user['sub'], $user['name'] ?? '', $user['company'] ?? null, $rs);
+                try { $keys = $api->keys($rs)['keys'] ?? []; } catch (RuntimeException $e2) {}
+            }
+        }
+    }
 }
 
 $first_name  = explode(' ', $user['name'] ?? 'Developer')[0];

@@ -63,6 +63,26 @@ class DelkaiAPI
         return $decoded;
     }
 
+    // ── Provision a Render session (master-key, no password needed) ──────────
+
+    /**
+     * Find-or-create a developer account on Render and return a fresh session token.
+     * Returns null silently on any failure.
+     */
+    public function provision(string $email, string $full_name, string $master_key): ?string
+    {
+        try {
+            $res = $this->request('POST', '/v1/developer/clerk-provision', [
+                'email'     => strtolower($email),
+                'full_name' => $full_name,
+                'clerk_id'  => 'php:' . md5($email),
+            ], ['X-DelkaAI-Master-Key: ' . $master_key]);
+            return $res['session_token'] ?? null;
+        } catch (RuntimeException $e) {
+            return null;
+        }
+    }
+
     // ── Developer auth ───────────────────────────────────────────────────────
 
     public function register(string $email, string $password, string $full_name, ?string $company = null): array

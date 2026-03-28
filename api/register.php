@@ -2,6 +2,7 @@
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/user_auth.php';
+require_once __DIR__ . '/includes/api.php';
 
 if (get_auth_user()) {
     header('Location: /dashboard');
@@ -24,7 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $result = auth_register($email, $password, $full_name, $company);
             if ($result === null) {
-                set_auth_cookie($email, $full_name, $company);
+                $rs = (new DelkaiAPI(DELKAI_API_URL))->provision($email, $full_name, DELKAI_MASTER_KEY);
+                set_auth_cookie($email, $full_name, $company, $rs);
                 header('Location: /dashboard');
                 exit;
             } elseif ($result === 'duplicate') {
