@@ -9,13 +9,14 @@ require_once __DIR__ . '/includes/api.php';
 require_auth();
 
 $api   = new DelkaiAPI(DELKAI_API_URL);
-$token = get_session_token();
+$user  = get_auth_user();
+$email = $user['sub'] ?? '';
 
 // Fetch user keys so they can pick one to test with
 $user_keys = [];
 try {
-    $res       = $api->keys($token);
-    $user_keys = array_filter($res['keys'] ?? [], fn($k) => $k['is_active'] ?? false);
+    $all_keys  = $api->developerKeys($email);
+    $user_keys = array_filter($all_keys, fn($k) => $k['is_active'] ?? false);
 } catch (RuntimeException $e) {
     // Non-fatal
 }

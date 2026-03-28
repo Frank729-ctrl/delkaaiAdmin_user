@@ -113,6 +113,7 @@ function set_admin_session(): void
         'expires'  => time() + 28800,
         'path'     => '/',
         'httponly' => true,
+        'secure'   => true,
         'samesite' => 'Lax',
     ]);
 }
@@ -123,6 +124,7 @@ function clear_admin_session(): void
         'expires'  => time() - 3600,
         'path'     => '/',
         'httponly' => true,
+        'secure'   => true,
         'samesite' => 'Lax',
     ]);
 }

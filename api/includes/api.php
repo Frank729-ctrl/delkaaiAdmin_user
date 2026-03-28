@@ -56,124 +56,12 @@ class DelkaiAPI
         $decoded = json_decode($body, true) ?? [];
 
         if ($httpCode >= 400) {
-            $detail = $decoded['detail'] ?? $decoded['message'] ?? 'API error';
+            $raw    = $decoded['detail'] ?? $decoded['message'] ?? 'API error';
+            $detail = is_array($raw) ? json_encode($raw) : (string) $raw;
             throw new RuntimeException($detail, $httpCode);
         }
 
         return $decoded;
-    }
-
-    // ── Provision a Render session (master-key, no password needed) ──────────
-
-    /**
-     * Find-or-create a developer account on Render and return a fresh session token.
-     * Returns null silently on any failure.
-     */
-    public function provision(string $email, string $full_name, string $master_key): ?string
-    {
-        $res = $this->request('POST', '/v1/developer/clerk-provision', [
-            'email'     => strtolower($email),
-            'full_name' => $full_name,
-            'clerk_id'  => 'php:' . md5($email),
-        ], ['X-DelkaAI-Master-Key: ' . $master_key]);
-        return $res['session_token'] ?? null;
-    }
-
-    // ── Developer auth ───────────────────────────────────────────────────────
-
-    public function register(string $email, string $password, string $full_name, ?string $company = null): array
-    {
-        $data = ['email' => $email, 'password' => $password, 'full_name' => $full_name];
-        if ($company !== null && $company !== '') {
-            $data['company'] = $company;
-        }
-        return $this->request('POST', '/v1/developer/register', $data);
-    }
-
-    /** Returns session_token string or null on failure. */
-    public function login(string $email, string $password): ?string
-    {
-        try {
-            $res = $this->request('POST', '/v1/developer/login', [
-                'email'    => $email,
-                'password' => $password,
-            ]);
-            return $res['session_token'] ?? null;
-        } catch (RuntimeException $e) {
-            return null;
-        }
-    }
-
-    /** Returns full login response array (including expires_at) or null on failure. */
-    public function loginFull(string $email, string $password): ?array
-    {
-        try {
-            return $this->request('POST', '/v1/developer/login', [
-                'email'    => $email,
-                'password' => $password,
-            ]);
-        } catch (RuntimeException $e) {
-            return null;
-        }
-    }
-
-    public function logout(string $session_token): array
-    {
-        return $this->request('POST', '/v1/developer/logout', [], [
-            'X-Delkai-Session: ' . $session_token,
-        ]);
-    }
-
-    public function me(string $session_token): array
-    {
-        return $this->request('GET', '/v1/developer/me', [], [
-            'X-Delkai-Session: ' . $session_token,
-        ]);
-    }
-
-    public function overview(string $session_token): array
-    {
-        return $this->request('GET', '/v1/developer/overview', [], [
-            'X-Delkai-Session: ' . $session_token,
-        ]);
-    }
-
-    public function createDeveloperKey(string $session_token, string $key_name): array
-    {
-        return $this->request('POST', '/v1/developer/keys/create', [
-            'key_name' => $key_name,
-        ], ['X-Delkai-Session: ' . $session_token]);
-    }
-
-    public function revokeDeveloperKey(string $session_token, string $key_prefix): array
-    {
-        return $this->request('POST', '/v1/developer/keys/revoke', [
-            'key_prefix' => $key_prefix,
-        ], ['X-Delkai-Session: ' . $session_token]);
-    }
-
-    public function keys(string $session_token): array
-    {
-        return $this->request('GET', '/v1/developer/keys', [], [
-            'X-Delkai-Session: ' . $session_token,
-        ]);
-    }
-
-    /**
-     * Exchange a verified Clerk identity for a DelkaAI session token.
-     * Returns array with session_token + expires_at, or null on failure.
-     */
-    public function clerkProvision(string $email, string $full_name, string $clerk_id, string $master_key): ?array
-    {
-        try {
-            return $this->request('POST', '/v1/developer/clerk-provision', [
-                'email'     => $email,
-                'full_name' => $full_name,
-                'clerk_id'  => $clerk_id,
-            ], ['X-DelkaAI-Master-Key: ' . $master_key]);
-        } catch (RuntimeException $e) {
-            return null;
-        }
     }
 
     // ── Developer key management (via dev-keys endpoints in health_router) ────
