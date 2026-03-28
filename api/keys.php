@@ -80,7 +80,7 @@ $active_page = 'keys';
 .key-reveal-warn { font-size:12px; color:#f59e0b; display:flex; align-items:center; gap:6px; margin-bottom:16px; }
 .key-reveal-row { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
 .key-reveal-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); width:28px; }
-.key-reveal-val { font-family:monospace; font-size:12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.key-reveal-val { font-family:monospace; font-size:12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; flex:1; overflow-x:auto; white-space:nowrap; word-break:break-all; }
 
 /* Key table */
 .key-name { font-weight:500; font-size:13px; }
