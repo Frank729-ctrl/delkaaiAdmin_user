@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $result = auth_register($email, $password, $full_name, $company);
             if ($result === null) {
-                $rs = (new DelkaiAPI(DELKAI_API_URL))->provision($email, $full_name, DELKAI_MASTER_KEY);
+                try { $rs = (new DelkaiAPI(DELKAI_API_URL))->provision($email, $full_name, DELKAI_MASTER_KEY); } catch (RuntimeException $e) { $rs = null; }
                 set_auth_cookie($email, $full_name, $company, $rs);
                 header('Location: /dashboard');
                 exit;
