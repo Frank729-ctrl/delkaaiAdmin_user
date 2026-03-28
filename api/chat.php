@@ -253,7 +253,7 @@ $active_page = 'chat';
   gap: 12px;
   padding: 6px 24px;
   align-items: flex-start;
-  max-width: 860px;
+  max-width: 700px;
   width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
@@ -361,7 +361,7 @@ $active_page = 'chat';
   padding: 8px 24px 20px;
 }
 .chat-input-outer {
-  max-width: 812px;
+  max-width: 700px;
   margin: 0 auto;
 }
 .chat-input-box {
@@ -714,24 +714,6 @@ $active_page = 'chat';
     return row.querySelector('.chat-bubble');
   }
 
-  // ── Typewriter ────────────────────────────────────────────────
-  function typewriterReveal(bubble, text, onDone) {
-    var words = text.split(' '), i = 0, current = '';
-    function step() {
-      if (i >= words.length) {
-        bubble.innerHTML = marked.parse(text);
-        messagesEl.scrollTop = messagesEl.scrollHeight;
-        if (onDone) onDone();
-        return;
-      }
-      current += (i === 0 ? '' : ' ') + words[i++];
-      bubble.innerHTML = marked.parse(current);
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-      setTimeout(step, 16);
-    }
-    step();
-  }
-
   // ── Utils ─────────────────────────────────────────────────────
   function escHtml(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -744,7 +726,7 @@ $active_page = 'chat';
     inputEl.style.height = Math.min(inputEl.scrollHeight, 140) + 'px';
   }
 
-  // ── Send message ──────────────────────────────────────────────
+  // ── Send message (streaming) ──────────────────────────────────
   function sendMessage() {
     var msg = inputEl.value.trim();
     if (!msg) return;
@@ -782,46 +764,85 @@ $active_page = 'chat';
     var thinkingBubble = appendBubble('assistant', '', null, true);
     sendBtn.disabled = true;
 
-    fetch('/general-chat', {
+    var fullReply = '';
+    var replyTs   = Date.now();
+    var streamStarted = false;
+
+    fetch('/general-chat-stream', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: msg, session_id: backendSession }),
     })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      var replyTs = Date.now();
-      if (data.error) {
-        thinkingBubble.className = 'chat-bubble chat-bubble-delka chat-bubble-error';
-        thinkingBubble.textContent = 'Error: ' + data.error;
-        messagesEl.scrollTop = messagesEl.scrollHeight;
-        return;
+    .then(function(response) {
+      if (!response.ok) {
+        return response.text().then(function(t) { throw new Error(t || response.statusText); });
       }
-      var reply = data.reply || '(no reply)';
-      if (data.session_id) saveBackendSession(data.session_id);
+      var reader  = response.body.getReader();
+      var decoder = new TextDecoder();
+      var buffer  = '';
 
-      thinkingBubble.className = 'chat-bubble chat-bubble-delka';
-      thinkingBubble.style.cssText = '';
-      thinkingBubble.innerHTML = '';
+      function pump() {
+        return reader.read().then(function(result) {
+          if (result.done) {
+            // Stream finished — persist final message
+            var s2 = loadStore();
+            if (s2.conversations[convId]) {
+              s2.conversations[convId].messages.push({ role: 'assistant', text: fullReply, ts: replyTs });
+              s2.conversations[convId].updatedAt = replyTs;
+              saveStore(s2);
+              renderHistory(s2);
+            }
+            sendBtn.disabled = false;
+            inputEl.focus();
+            return;
+          }
 
-      var metaEl = thinkingBubble.closest('.chat-bubble-wrap').querySelector('.chat-meta');
-      if (metaEl) metaEl.textContent = formatTime(replyTs) + ' · ' + MODEL_NAME;
+          buffer += decoder.decode(result.value, { stream: true });
+          var lines = buffer.split('\n');
+          buffer = lines.pop(); // keep incomplete last line
 
-      typewriterReveal(thinkingBubble, reply, function() {
-        var s2 = loadStore();
-        if (s2.conversations[convId]) {
-          s2.conversations[convId].messages.push({ role: 'assistant', text: reply, ts: replyTs });
-          s2.conversations[convId].updatedAt = replyTs;
-          saveStore(s2);
-          renderHistory(s2);
-        }
-      });
+          lines.forEach(function(line) {
+            if (!line.startsWith('data: ')) return;
+            var payload = line.slice(6).trim();
+            if (!payload || payload === '[DONE]') return;
+
+            // First event may be session metadata JSON
+            if (payload.charAt(0) === '{') {
+              try {
+                var meta = JSON.parse(payload);
+                if (meta.session_id) saveBackendSession(meta.session_id);
+              } catch(e) {}
+              return;
+            }
+
+            // First real token — clear thinking indicator
+            if (!streamStarted) {
+              streamStarted = true;
+              thinkingBubble.className = 'chat-bubble chat-bubble-delka';
+              thinkingBubble.style.cssText = '';
+              thinkingBubble.innerHTML = '';
+              var metaEl = thinkingBubble.closest('.chat-bubble-wrap').querySelector('.chat-meta');
+              if (metaEl) metaEl.textContent = formatTime(replyTs) + ' · ' + MODEL_NAME;
+            }
+
+            fullReply += payload;
+            thinkingBubble.innerHTML = marked.parse(fullReply);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+          });
+
+          return pump();
+        });
+      }
+
+      return pump();
     })
     .catch(function(err) {
       thinkingBubble.className = 'chat-bubble chat-bubble-delka chat-bubble-error';
       thinkingBubble.textContent = 'Connection error: ' + err.message;
       messagesEl.scrollTop = messagesEl.scrollHeight;
-    })
-    .finally(function() { sendBtn.disabled = false; inputEl.focus(); });
+      sendBtn.disabled = false;
+      inputEl.focus();
+    });
   }
 
   // ── Event listeners ───────────────────────────────────────────
