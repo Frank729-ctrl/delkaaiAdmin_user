@@ -10,7 +10,7 @@ function _env(string $key, string $default = ''): string {
 }
 
 defined('DELKAI_API_URL')    || define('DELKAI_API_URL',    _env('DELKAI_API_URL',    'https://delka.onrender.com'));
-defined('DELKAI_MASTER_KEY') || define('DELKAI_MASTER_KEY', _env('DELKAI_MASTER_KEY', ''));
+defined('DELKAI_MASTER_KEY') || define('DELKAI_MASTER_KEY', _env('DELKAI_MASTER_KEY', '93f0910d1bb9b312be3e653abbfadc781e131b39a087816efcb24437cd4f7ba2'));
 defined('ADMIN_EMAIL')       || define('ADMIN_EMAIL',       _env('ADMIN_EMAIL',       ''));
 defined('ADMIN_PASSWORD')    || define('ADMIN_PASSWORD',    _env('ADMIN_PASSWORD',    ''));
 
