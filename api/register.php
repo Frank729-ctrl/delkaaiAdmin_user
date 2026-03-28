@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/auth.php';
-require_once __DIR__ . '/includes/api.php';
+require_once __DIR__ . '/includes/user_auth.php';
 
 if (get_auth_user()) {
     header('Location: /dashboard');
@@ -22,17 +22,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Password must be at least 8 characters.';
     } else {
         try {
-            $api = new DelkaiAPI(DELKAI_API_URL);
-            $api->register($email, $password, $full_name, $company);
-            set_auth_cookie($email, $full_name, $company);
-            header('Location: /dashboard');
-            exit;
-        } catch (RuntimeException $e) {
-            if ($e->getCode() === 409) {
+            $result = auth_register($email, $password, $full_name, $company);
+            if ($result === null) {
+                set_auth_cookie($email, $full_name, $company);
+                header('Location: /dashboard');
+                exit;
+            } elseif ($result === 'duplicate') {
                 $error = 'An account with that email already exists.';
-            } else {
-                $error = 'Registration failed: ' . $e->getMessage();
             }
+        } catch (RuntimeException $e) {
+            $error = 'Registration failed: ' . $e->getMessage();
         }
     }
 }

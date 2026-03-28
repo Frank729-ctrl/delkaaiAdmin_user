@@ -19,5 +19,9 @@ defined('RESEND_FROM_EMAIL') || define('RESEND_FROM_EMAIL', _env('RESEND_FROM_EM
 
 defined('JWT_SECRET') || define('JWT_SECRET', _env('JWT_SECRET', '22bc88187dfa01e6ee28550d402f04aea6b75d7cf9acc4234770e73b2cee5339'));
 
+defined('DB_DSN')  || define('DB_DSN',  'pgsql:host=aws-1-eu-west-1.pooler.supabase.com;port=5432;dbname=postgres;sslmode=require');
+defined('DB_USER') || define('DB_USER', 'postgres.vtnfqdqbuonszfdhglyq');
+defined('DB_PASS') || define('DB_PASS', 'ZkeoQBQsPbKzMfca');
+
 defined('SESSION_COOKIE') || define('SESSION_COOKIE', 'delkai_dev_session');
 defined('ADMIN_COOKIE')   || define('ADMIN_COOKIE',   'delkai_admin_session');
