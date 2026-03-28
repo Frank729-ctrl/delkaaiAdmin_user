@@ -126,13 +126,19 @@ $active_page = 'chat';
 .chat-avatar-user { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
 
 .chat-bubble {
-  max-width: 72%;
+  display: inline-block;
+  max-width: 100%;
   padding: 10px 14px;
   border-radius: 14px;
   font-size: 13px;
   line-height: 1.65;
   white-space: pre-wrap;
   word-break: break-word;
+}
+.chat-row > div {
+  max-width: 72%;
+  display: flex;
+  flex-direction: column;
 }
 .chat-bubble-ai {
   background: var(--surface2);
