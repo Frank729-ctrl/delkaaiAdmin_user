@@ -11,20 +11,10 @@ $api   = new DelkaiAPI(DELKAI_API_URL);
 $keys  = [];
 $error = null;
 
-$rs = $user['rs'] ?? null;
-if ($rs) {
-    try {
-        $keys = $api->keys($rs)['keys'] ?? [];
-    } catch (RuntimeException $e) {
-        if ($e->getCode() === 401) {
-            // Session expired — reprovision silently
-            $rs = $api->provision($user['sub'], $user['name'] ?? '', DELKAI_MASTER_KEY);
-            if ($rs) {
-                set_auth_cookie($user['sub'], $user['name'] ?? '', $user['company'] ?? null, $rs);
-                try { $keys = $api->keys($rs)['keys'] ?? []; } catch (RuntimeException $e2) {}
-            }
-        }
-    }
+try {
+    $keys = $api->developerKeys($user['sub']);
+} catch (RuntimeException $e) {
+    // Silently degrade — show zero stats when API unavailable
 }
 
 $first_name  = explode(' ', $user['name'] ?? 'Developer')[0];

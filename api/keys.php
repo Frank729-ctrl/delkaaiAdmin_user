@@ -13,27 +13,14 @@ $keys  = [];
 $error = null;
 $new_key = null;
 
-// Ensure a valid Render session, reprovision if missing/expired
-$rs = $user['rs'] ?? null;
-if (!$rs) {
-    try {
-        $rs = $api->provision($email, $user['name'] ?? '', DELKAI_MASTER_KEY);
-        if ($rs) set_auth_cookie($email, $user['name'] ?? '', $user['company'] ?? null, $rs);
-    } catch (RuntimeException $e) {
-        $error = 'Provision failed: ' . $e->getMessage() . ' (code ' . $e->getCode() . ')';
-    }
-}
-
 // ── Handle create ─────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'create') {
     $key_name = trim($_POST['key_name'] ?? '');
     if (!$key_name) {
         $error = 'Please enter a name for your API key.';
-    } elseif (!$rs) {
-        $error = $error ?? 'Session unavailable. Please log out and log in again.';
     } else {
         try {
-            $new_key = $api->createDeveloperKey($rs, $key_name);
+            $new_key = $api->developerCreateKey($email, $key_name);
         } catch (RuntimeException $e) {
             $error = 'Failed to create key: ' . $e->getMessage();
         }
@@ -43,9 +30,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
 // ── Handle revoke ─────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'revoke') {
     $prefix = trim($_POST['key_prefix'] ?? '');
-    if ($prefix && $rs) {
+    if ($prefix) {
         try {
-            $api->revokeDeveloperKey($rs, $prefix);
+            $api->developerRevokeKey($email, $prefix);
         } catch (RuntimeException $e) {
             $error = 'Failed to revoke key: ' . $e->getMessage();
         }
@@ -53,12 +40,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'revok
 }
 
 // ── Load keys ─────────────────────────────────────────────────────────────────
-if ($rs) {
-    try {
-        $keys = $api->keys($rs)['keys'] ?? [];
-    } catch (RuntimeException $e) {
-        $error = $error ?? 'Could not load keys.';
-    }
+try {
+    $keys = $api->developerKeys($email);
+} catch (RuntimeException $e) {
+    $error = $error ?? 'Could not load keys.';
 }
 
 $active_page = 'keys';

@@ -176,31 +176,29 @@ class DelkaiAPI
         }
     }
 
-    // ── Developer key management (via admin API, master-key auth) ────────────
+    // ── Developer key management (via dev-keys endpoints in health_router) ────
 
-    /**
-     * List all API keys owned by this developer (filters by owner email).
-     */
     public function developerKeys(string $owner_email): array
     {
-        $res = $this->request('GET', '/v1/admin/keys/list', [], [
+        $res = $this->request('GET', '/v1/admin/dev-keys/list?owner=' . urlencode($owner_email), [], [
             $this->masterHeader(DELKAI_MASTER_KEY),
         ]);
-        $all = $res['data'] ?? [];
-        return array_values(array_filter($all, fn($k) => ($k['owner'] ?? '') === $owner_email));
+        return $res['keys'] ?? [];
     }
 
-    /**
-     * Create a new API key for this developer.
-     */
     public function developerCreateKey(string $owner_email, string $key_name): array
     {
-        $res = $this->request('POST', '/v1/admin/keys/create', [
-            'platform'      => $key_name,
-            'owner'         => $owner_email,
-            'requires_hmac' => false,
+        return $this->request('POST', '/v1/admin/dev-keys/create', [
+            'owner'    => $owner_email,
+            'key_name' => $key_name,
         ], [$this->masterHeader(DELKAI_MASTER_KEY)]);
-        return $res['data'] ?? $res;
+    }
+
+    public function developerRevokeKey(string $owner_email, string $key_prefix): array
+    {
+        return $this->request('POST', '/v1/admin/dev-keys/revoke', [
+            'key_prefix' => $key_prefix,
+        ], [$this->masterHeader(DELKAI_MASTER_KEY)]);
     }
 
     // ── Admin ────────────────────────────────────────────────────────────────

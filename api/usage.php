@@ -12,19 +12,10 @@ $api   = new DelkaiAPI(DELKAI_API_URL);
 $keys  = [];
 $error = null;
 
-$rs = $user['rs'] ?? null;
-if ($rs) {
-    try {
-        $keys = $api->keys($rs)['keys'] ?? [];
-    } catch (RuntimeException $e) {
-        if ($e->getCode() === 401) {
-            $rs = $api->provision($email, $user['name'] ?? '', DELKAI_MASTER_KEY);
-            if ($rs) {
-                set_auth_cookie($email, $user['name'] ?? '', $user['company'] ?? null, $rs);
-                try { $keys = $api->keys($rs)['keys'] ?? []; } catch (RuntimeException $e2) {}
-            }
-        }
-    }
+try {
+    $keys = $api->developerKeys($email);
+} catch (RuntimeException $e) {
+    // Silently degrade
 }
 
 $total_reqs = array_sum(array_column($keys, 'usage_count'));
@@ -100,7 +91,7 @@ $active_page = 'usage';
             <?php
               $usage = (int)($key['usage_count'] ?? 0);
               $pct   = $total_reqs > 0 ? round(($usage / $total_reqs) * 100) : 0;
-              $last  = $key['last_used'] ?? null;
+              $last  = $key['last_used_at'] ?? $key['last_used'] ?? null;
               $type  = $key['key_type'] ?? '';
             ?>
             <tr>
