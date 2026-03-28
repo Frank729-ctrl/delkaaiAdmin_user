@@ -15,7 +15,7 @@ $error = null;
 try {
     $keys = $api->developerKeys($user['sub']);
 } catch (RuntimeException $e) {
-    $error = 'Could not load key stats.';
+    $error = 'Could not load key stats: ' . $e->getMessage() . ' (code ' . $e->getCode() . ')';
 }
 
 $first_name  = explode(' ', $user['name'] ?? 'Developer')[0];
