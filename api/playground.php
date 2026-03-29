@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'applicant_background' => $_POST['applicant_background'] ?? '',
                 'platform'             => 'playground',
             ];
-            $path = '/v1/cover-letter/generate';
+            $path = '/v1/letter/generate';
             break;
 
         case 'chat':
@@ -182,7 +182,7 @@ $active_page = 'playground';
                 <label for="playground-endpoint">Endpoint</label>
                 <select id="playground-endpoint" name="endpoint">
                   <option value="cv">CV Generation — POST /v1/cv/generate</option>
-                  <option value="cover_letter">Cover Letter — POST /v1/cover-letter/generate</option>
+                  <option value="cover_letter">Cover Letter — POST /v1/letter/generate</option>
                   <option value="chat">AI Chat — POST /v1/chat</option>
                   <option value="vision">Visual Search — POST /v1/vision/search</option>
                   <option value="feedback">Feedback — POST /v1/feedback</option>
