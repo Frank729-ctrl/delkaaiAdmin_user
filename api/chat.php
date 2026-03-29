@@ -334,31 +334,6 @@ $active_page = 'chat';
 .thinking-dot:nth-child(2) { animation-delay: .2s; }
 .thinking-dot:nth-child(3) { animation-delay: .4s; }
 
-/* AI bubble action bar */
-.bubble-actions {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
-}
-.bubble-action-btn {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 10.5px;
-  font-weight: 500;
-  color: var(--muted);
-  background: none;
-  border: none;
-  cursor: pointer;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-  padding: 0;
-  transition: color .15s;
-}
-.bubble-action-btn:hover { color: var(--text); }
 
 /* Meta */
 .chat-meta {
@@ -727,12 +702,6 @@ $active_page = 'chat';
       innerHtml =
         '<div class="chat-bubble chat-bubble-delka">' +
           marked.parse(text || '') +
-          '<div class="bubble-actions">' +
-            '<button class="bubble-action-btn copy-btn">' +
-              '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>' +
-              'Copy' +
-            '</button>' +
-          '</div>' +
         '</div>';
     }
 
@@ -746,19 +715,6 @@ $active_page = 'chat';
         '</div>' +
       '</div>';
 
-    // Wire copy button
-    var copyBtn = row.querySelector('.copy-btn');
-    if (copyBtn) {
-      var capturedText = text;
-      copyBtn.addEventListener('click', function() {
-        navigator.clipboard.writeText(capturedText || '').then(function() {
-          copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Copied';
-          setTimeout(function() {
-            copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy';
-          }, 2000);
-        });
-      });
-    }
 
     messagesEl.appendChild(row);
     if (!skipScroll) messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -848,19 +804,6 @@ $active_page = 'chat';
       function pump() {
         return reader.read().then(function(result) {
           if (result.done) {
-            // Update copy button with final text
-            var copyBtn = thinkingRow.querySelector('.copy-btn');
-            if (copyBtn) {
-              var capturedReply = fullReply;
-              copyBtn.onclick = function() {
-                navigator.clipboard.writeText(capturedReply).then(function() {
-                  copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Copied';
-                  setTimeout(function() {
-                    copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy';
-                  }, 2000);
-                });
-              };
-            }
             var s2 = loadStore();
             if (s2.conversations[convId]) {
               s2.conversations[convId].messages.push({ role: 'assistant', text: fullReply, ts: replyTs });
@@ -879,8 +822,8 @@ $active_page = 'chat';
 
           lines.forEach(function(line) {
             if (!line.startsWith('data: ')) return;
-            var payload = line.slice(6).trim();
-            if (!payload || payload === '[DONE]') return;
+            var payload = line.slice(6).replace(/[\r\n]+$/, '');
+            if (payload === '' || payload === '[DONE]') return;
 
             if (payload.charAt(0) === '{') {
               try {
@@ -903,14 +846,7 @@ $active_page = 'chat';
 
             fullReply += payload;
             if (aiBubble) {
-              aiBubble.innerHTML =
-                marked.parse(fullReply) +
-                '<div class="bubble-actions">' +
-                  '<button class="bubble-action-btn copy-btn">' +
-                    '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>' +
-                    'Copy' +
-                  '</button>' +
-                '</div>';
+              aiBubble.innerHTML = marked.parse(fullReply);
               messagesEl.scrollTop = messagesEl.scrollHeight;
             }
           });
