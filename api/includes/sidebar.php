@@ -57,6 +57,10 @@ $active_page = $active_page ?? '';
   </nav>
 
   <div class="sidebar-footer">
+    <button id="sidebar-support-link" onclick="document.getElementById('support-chat-panel').classList.toggle('sc-open')">
+      <img src="/images/logo.svg" width="16" height="16" alt="">
+      Delka Support
+    </button>
     <a href="/logout">
       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Sign out
@@ -76,6 +80,32 @@ $active_page = $active_page ?? '';
   overflow: hidden;
 }
 #support-chat-btn:hover { transform:scale(1.08); box-shadow:0 6px 28px rgba(124,58,237,.55); }
+@media (max-width: 768px) {
+  #support-chat-btn { display: none; }
+  #support-chat-panel { bottom: 0; right: 0; left: 0; width: 100%; border-radius: 14px 14px 0 0; }
+}
+#sidebar-support-link {
+  display: none;
+}
+@media (max-width: 768px) {
+  #sidebar-support-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    color: var(--muted,#6b7280);
+    font-size: 13px;
+    cursor: pointer;
+    transition: color .15s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    border-top: 1px solid var(--border,#2a2d38);
+    margin-top: 4px;
+  }
+  #sidebar-support-link:hover { color: var(--text,#e8eaf0); }
+}
 #support-chat-panel {
   position:fixed; bottom:86px; right:24px; z-index:901;
   width:340px; max-height:500px;
