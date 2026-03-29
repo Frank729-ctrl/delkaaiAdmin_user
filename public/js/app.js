@@ -258,7 +258,7 @@ function updatePlaygroundForm(endpoint) {
       { name: 'session_id', label: 'Session ID', type: 'text',     placeholder: 'user-session-123 (optional, leave blank to auto-generate)' },
     ],
     vision: [
-      { name: 'image_url', label: 'Image URL', type: 'text', placeholder: 'https://example.com/photo.jpg' },
+      { name: 'image_url', label: 'Image URL — must be a direct link to an image file (.jpg, .png, .webp). Right-click an image in your browser → "Copy image address".', type: 'text', placeholder: 'https://example.com/photo.jpg' },
     ],
     feedback: [
       { name: 'session_id', label: 'Session ID',    type: 'text',     placeholder: 'The session ID you want to rate' },
