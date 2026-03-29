@@ -93,22 +93,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $ch = curl_init(rtrim(DELKAI_API_URL, '/') . $path);
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT        => 45,
+        CURLOPT_TIMEOUT        => 60,
         CURLOPT_POST           => true,
         CURLOPT_POSTFIELDS     => json_encode($payload),
         CURLOPT_HTTPHEADER     => [
             'Content-Type: application/json',
-            'Accept: application/json',
+            'Accept: application/json, application/pdf',
             'X-DelkaAI-Key: ' . $api_key,
         ],
+        CURLOPT_HEADER         => true,  // include response headers
     ]);
-    $raw      = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $err      = curl_error($ch);
+    $response  = curl_exec($ch);
+    $httpCode  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $headerSz  = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+    $err       = curl_error($ch);
     curl_close($ch);
 
     if ($err) {
         echo json_encode(['error' => 'cURL error: ' . $err]);
+        exit;
+    }
+
+    $headers = substr($response, 0, $headerSz);
+    $raw     = substr($response, $headerSz);
+
+    // PDF response — return as base64 download link
+    if (str_contains($headers, 'application/pdf')) {
+        echo json_encode([
+            '_http_status' => $httpCode,
+            '_type'        => 'pdf',
+            '_size_bytes'  => strlen($raw),
+            '_download'    => 'data:application/pdf;base64,' . base64_encode($raw),
+            'message'      => 'CV generated successfully. Click "Download CV" to save.',
+        ], JSON_PRETTY_PRINT);
         exit;
     }
 
@@ -257,7 +274,25 @@ document.getElementById('playground-form').addEventListener('submit', function(e
       statusBadge.textContent   = 'HTTP ' + status;
       statusBadge.className     = 'badge ' + (status < 300 ? 'badge-success' : (status < 500 ? 'badge-warning' : 'badge-error'));
     }
-    responseArea.textContent = JSON.stringify(data, null, 2);
+
+    // PDF response — show download button
+    var existing = document.getElementById('cv-download-btn');
+    if (existing) existing.remove();
+    if (data._type === 'pdf' && data._download) {
+      var dlBtn = document.createElement('a');
+      dlBtn.id        = 'cv-download-btn';
+      dlBtn.href      = data._download;
+      dlBtn.download  = 'delka-cv.pdf';
+      dlBtn.className = 'btn btn-primary';
+      dlBtn.style.cssText = 'display:inline-flex;margin:12px 16px 0;';
+      dlBtn.textContent   = 'Download CV (PDF)';
+      responseArea.parentNode.insertBefore(dlBtn, responseArea);
+      var display = Object.assign({}, data);
+      delete display._download; // don't dump the huge base64 in the text area
+      responseArea.textContent = JSON.stringify(display, null, 2);
+    } else {
+      responseArea.textContent = JSON.stringify(data, null, 2);
+    }
   })
   .catch(function(err) {
     responseArea.textContent = 'Error: ' + err.message;
