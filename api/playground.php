@@ -119,12 +119,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // PDF response — return as base64 download link
     if (str_contains($headers, 'application/pdf')) {
+        $label    = ($endpoint === 'cover_letter') ? 'Cover Letter' : 'CV';
+        $filename = ($endpoint === 'cover_letter') ? 'cover-letter.pdf' : 'cv.pdf';
         echo json_encode([
             '_http_status' => $httpCode,
             '_type'        => 'pdf',
+            '_label'       => $label,
+            '_filename'    => $filename,
             '_size_bytes'  => strlen($raw),
             '_download'    => 'data:application/pdf;base64,' . base64_encode($raw),
-            'message'      => 'CV generated successfully. Click "Download CV" to save.',
+            'message'      => $label . ' generated successfully. Click the download button to save.',
         ], JSON_PRETTY_PRINT);
         exit;
     }
@@ -276,16 +280,16 @@ document.getElementById('playground-form').addEventListener('submit', function(e
     }
 
     // PDF response — show download button
-    var existing = document.getElementById('cv-download-btn');
+    var existing = document.getElementById('pg-download-btn');
     if (existing) existing.remove();
     if (data._type === 'pdf' && data._download) {
       var dlBtn = document.createElement('a');
-      dlBtn.id        = 'cv-download-btn';
+      dlBtn.id        = 'pg-download-btn';
       dlBtn.href      = data._download;
-      dlBtn.download  = 'delka-cv.pdf';
+      dlBtn.download  = data._filename || 'delka-document.pdf';
       dlBtn.className = 'btn btn-primary';
       dlBtn.style.cssText = 'display:inline-flex;margin:12px 16px 0;';
-      dlBtn.textContent   = 'Download CV (PDF)';
+      dlBtn.textContent   = 'Download ' + (data._label || 'Document') + ' (PDF)';
       responseArea.parentNode.insertBefore(dlBtn, responseArea);
       var display = Object.assign({}, data);
       delete display._download; // don't dump the huge base64 in the text area
